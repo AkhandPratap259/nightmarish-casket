@@ -63,7 +63,7 @@ access, then visit **Admin** to add products and manage orders.
 - Seed prices are in USD in the database; the frontend displays them in ₹
   (× 83) for an Indian audience. Change the multiplier in `Shop.jsx`,
   `ProductDetail.jsx`, `Cart.jsx` and `Orders.jsx` if you prefer USD.
-- Product images use Picsum placeholder photos, so the demo works without
-  any image-upload setup.
+- Product images are self-contained SVG placeholders generated in the seed
+  data, so the demo works offline without any image-upload setup.
 - No secrets are committed: copy `server/.env.example` to `server/.env`
   and set your own `JWT_SECRET` and `MONGO_URI`.

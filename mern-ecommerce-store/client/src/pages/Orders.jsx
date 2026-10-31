@@ -11,7 +11,7 @@ export default function Orders() {
       {orders.length === 0 ? <p>No orders yet.</p> : (
         <table className="table"><thead><tr><th>Date</th><th>Items</th><th>Total</th><th>Status</th></tr></thead>
           <tbody>{orders.map((o) => (
-            <tr key={o._id}><td>{new Date(o.createdAt).toLocaleDateString()}</td><td>{o.items.map((i) => `${i.name} × ${i.qty}`).join(', ')}</td><td>₹{(o.total * 83).toLocaleString('en-IN')}</td><td>{o.status}</td></tr>
+            <tr key={o._id}><td>{new Date(o.createdAt).toLocaleDateString()}</td><td>{o.items.map((i) => `${i.name} × ${i.qty}`).join(', ')}</td><td>₹{Math.round(o.total * 83).toLocaleString('en-IN')}</td><td>{o.status}</td></tr>
           ))}</tbody></table>
       )}
     </div>

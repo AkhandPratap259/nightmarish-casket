@@ -46,7 +46,7 @@ export default function Shop() {
                 <span className="badge">{p.category}</span>
                 <Link to={`/product/${p._id}`}><h3>{p.name}</h3></Link>
                 <div className="muted">★ {p.rating} · {p.stock > 0 ? `${p.stock} in stock` : 'Out of stock'}</div>
-                <div className="price">₹{(p.price * 83).toLocaleString('en-IN')}</div>
+                <div className="price">₹{Math.round(p.price * 83).toLocaleString('en-IN')}</div>
                 <button className="btn" disabled={p.stock === 0} onClick={() => addToCart(p)}>Add to cart</button>
               </div>
             </div>

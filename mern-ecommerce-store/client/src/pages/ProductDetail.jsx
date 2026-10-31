@@ -17,7 +17,7 @@ export default function ProductDetail() {
         <h1>{product.name}</h1>
         <p className="muted">★ {product.rating} · {product.stock} in stock</p>
         <p>{product.description}</p>
-        <div className="price" style={{ fontSize: 26 }}>₹{(product.price * 83).toLocaleString('en-IN')}</div>
+        <div className="price" style={{ fontSize: 26 }}>₹{Math.round(product.price * 83).toLocaleString('en-IN')}</div>
         <div style={{ display: 'flex', gap: 10, marginTop: 18 }}>
           <input type="number" min="1" max={product.stock} value={qty} onChange={(e) => setQty(Number(e.target.value))} style={{ width: 80, padding: 10, borderRadius: 8, border: '1px solid #d5dce3' }} />
           <button className="btn" onClick={() => addToCart(product, qty)}>Add to cart</button>
