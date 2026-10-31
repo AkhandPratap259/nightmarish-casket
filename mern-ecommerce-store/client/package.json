@@ -1,0 +1,1 @@
+{"dependencies":{"react":"^18.3.1","react-dom":"^18.3.1","react-router-dom":"^6.24.1"},"description":"React frontend for the MERN e-commerce store.","devDependencies":{"@vitejs/plugin-react":"^4.3.1","vite":"^5.3.4"},"name":"mern-ecommerce-store-client","scripts":{"build":"vite build","dev":"vite","preview":"vite preview"},"version":"1.0.0"}
