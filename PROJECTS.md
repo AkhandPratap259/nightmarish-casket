@@ -8,6 +8,7 @@ One new MERN project is added here every day, each in its own folder.
 | --- | --- | --- | --- | --- |
 | 1 | 2026-10-31 | ShopKart — MERN E-commerce Store | `mern-ecommerce-store/` | JWT auth + roles, product search/filter/sort/pagination, cart, checkout with stock control, orders, admin dashboard |
 | 2 | 2026-10-31 | ChatWave — Real-time Chat App | `mern-realtime-chat/` | JWT auth, public + user-created rooms, Socket.io live messages with persistence, online presence, typing indicators, message history |
+| 3 | 2026-11-01 | HireHub — MERN Job Portal | `mern-job-portal/` | JWT auth with candidate/recruiter roles, job search/filter/pagination, recruiter job CRUD, applications with status pipeline, saved jobs |
 
 ## How to run a project
 

@@ -1,0 +1,17 @@
+body { font-family: system-ui, sans-serif; margin: 0; background: #f6f7f9; color: #1c2430; }
+.shell { max-width: 960px; margin: 0 auto; padding: 1rem 1.25rem 3rem; }
+header { display: flex; flex-wrap: wrap; gap: 1rem; align-items: center; justify-content: space-between; }
+header h1 { margin: 0; color: #12355b; }
+nav { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; }
+button { cursor: pointer; padding: 0.45rem 0.9rem; border: 1px solid #12355b; background: #12355b; color: #fff; border-radius: 6px; }
+button.link { background: none; border: none; color: #12355b; padding: 0; font-size: 1.05rem; font-weight: 600; text-decoration: underline; }
+input, select, textarea { display: block; width: 100%; margin: 0.4rem 0; padding: 0.5rem; border: 1px solid #c3ccd6; border-radius: 6px; box-sizing: border-box; }
+textarea { min-height: 80px; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1rem; }
+.card { background: #fff; border: 1px solid #dde3ea; border-radius: 10px; padding: 1rem; }
+.card h3 { margin-top: 0; }
+.muted { color: #5b6773; }
+.filters { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 0.5rem; margin-bottom: 1rem; }
+.form { max-width: 560px; }
+.ok { background: #e2f3e5; padding: 0.6rem; border-radius: 6px; }
+.err { background: #fbe3e3; padding: 0.6rem; border-radius: 6px; }
