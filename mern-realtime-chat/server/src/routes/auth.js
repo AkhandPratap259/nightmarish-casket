@@ -25,15 +25,22 @@ router.post('/register', async (req, res) => {
 });
 
 router.post('/login', async (req, res) => {
-  const { email, password } = req.body || {};
-  const user = await User.findOne({ email: (email || '').toLowerCase() });
-  if (!user || !(await bcrypt.compare(password || '', user.passwordHash))) {
-    return res.status(401).json({ message: 'Invalid email or password' });
+  try {
+    const { email, password } = req.body || {};
+    const user = await User.findOne({ email: (email || '').toLowerCase() });
+    // A user created by another app in a shared database may have no
+    // passwordHash field (e.g. ShopKart stores it as `password`). That is
+    // an invalid login for this app, not a server crash: return 401.
+    if (!user || !user.passwordHash || !(await bcrypt.compare(password || '', user.passwordHash))) {
+      return res.status(401).json({ message: 'Invalid email or password' });
+    }
+    return res.json({
+      token: signToken(user),
+      user: { id: user._id, name: user.name, email: user.email },
+    });
+  } catch (err) {
+    return res.status(500).json({ message: err.message });
   }
-  return res.json({
-    token: signToken(user),
-    user: { id: user._id, name: user.name, email: user.email },
-  });
 });
 
 router.get('/me', protect, (req, res) => {
