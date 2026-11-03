@@ -29,11 +29,17 @@ async function connectDb() {
     return;
   }
   // Local development fallback: an in-memory MongoDB, so the app runs with
-  // zero setup. On Windows on ARM, force the Intel binary with MONGOMS_ARCH=x64
-  // (already in the shipped server/.env), or set MONGO_URI to a free Atlas M0
-  // cluster to skip the download entirely.
+  // zero setup. On Windows on ARM, MongoDB does not publish a Windows-ARM
+  // binary for 7.0.24, so the Intel (x64) binary must be used via emulation.
+  // This is forced here in code — not only via server/.env — because a
+  // missing, misnamed (.env.txt) or unloaded .env file must not be able to
+  // silently fall back to the broken aarch64 download. Set MONGO_URI to a
+  // free Atlas M0 cluster to skip the download entirely.
   const { MongoMemoryServer } = require('mongodb-memory-server');
-  const mongod = await MongoMemoryServer.create();
+  const isWindowsArm = process.platform === 'win32' && process.arch === 'arm64';
+  const mongod = await MongoMemoryServer.create(
+    isWindowsArm ? { binary: { arch: 'x64' } } : {}
+  );
   await mongoose.connect(mongod.getUri());
   console.log('Connected to in-memory MongoDB (local dev only — set MONGO_URI for persistent data)');
 }
