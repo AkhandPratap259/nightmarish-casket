@@ -10,6 +10,7 @@ One new MERN project is added here every day, each in its own folder.
 | 2 | 2026-10-31 | ChatWave — Real-time Chat App | `mern-realtime-chat/` | JWT auth, public + user-created rooms, Socket.io live messages with persistence, online presence, typing indicators, message history |
 | 3 | 2026-11-01 | HireHub — MERN Job Portal | `mern-job-portal/` | JWT auth with candidate/recruiter roles, job search/filter/pagination, recruiter job CRUD, applications with status pipeline, saved jobs |
 | 4 | 2026-11-02 | LearnLoop — MERN Learning Platform | `mern-learning-platform/` | JWT auth with student/instructor roles, course search/filter/pagination, instructor course + lesson CRUD, enrolments with per-lesson progress tracking |
+| 5 | 2026-11-03 | FlowBoard — Collaborative Project Workspace | `mern-project-workspace/` | JWT auth, projects with members, drag-and-drop Kanban with server-enforced WIP limits, task checklists + comments, activity feed, board health analytics |
 
 ## How to run a project
 

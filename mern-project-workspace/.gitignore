@@ -1,0 +1,7 @@
+node_modules/
+dist/
+# NOTE: server/.env is intentionally committed: it contains ONLY safe local
+# development defaults (empty MONGO_URI, a dev-only JWT secret). Never add a
+# real Atlas URI, password or API key to it. Any other .env file is ignored:
+.env.local
+.env.production
