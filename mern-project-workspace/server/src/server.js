@@ -37,9 +37,15 @@ async function connectDb() {
   // free Atlas M0 cluster to skip the download entirely.
   const { MongoMemoryServer } = require('mongodb-memory-server');
   const isWindowsArm = process.platform === 'win32' && process.arch === 'arm64';
-  const mongod = await MongoMemoryServer.create(
-    isWindowsArm ? { binary: { arch: 'x64' } } : {}
-  );
+  // launchTimeout: the default is only 10 seconds, and an x64 mongod running
+  // under Windows-ARM emulation (plus first-run extraction / Defender scan)
+  // routinely takes longer than that to become ready, producing
+  // "Instance failed to start within 10000ms" even though the binary itself
+  // is fine. 60 seconds gives it room without changing anything else.
+  const mongod = await MongoMemoryServer.create({
+    binary: isWindowsArm ? { arch: 'x64' } : {},
+    instance: { launchTimeout: 60000 },
+  });
   await mongoose.connect(mongod.getUri());
   console.log('Connected to in-memory MongoDB (local dev only — set MONGO_URI for persistent data)');
 }
