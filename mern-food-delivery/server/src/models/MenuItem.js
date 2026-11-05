@@ -1,0 +1,19 @@
+const mongoose = require('mongoose');
+
+const menuItemSchema = new mongoose.Schema(
+  {
+    restaurant: { type: mongoose.Schema.Types.ObjectId, ref: 'Restaurant', required: true },
+    name: { type: String, required: true, trim: true },
+    description: { type: String, default: '' },
+    price: { type: Number, required: true, min: 0 },
+    category: { type: String, default: 'Main' },
+    veg: { type: Boolean, default: false },
+    spicy: { type: Number, default: 0, min: 0, max: 3 },
+    popular: { type: Boolean, default: false },
+    emoji: { type: String, default: '🍲' },
+    available: { type: Boolean, default: true },
+  },
+  { timestamps: true }
+);
+
+module.exports = mongoose.model('MenuItem', menuItemSchema);
