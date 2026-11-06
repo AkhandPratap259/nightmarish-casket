@@ -13,6 +13,7 @@ One new MERN project is added here every day, each in its own folder.
 | 5 | 2026-11-03 | FlowBoard — Collaborative Project Workspace | `mern-project-workspace/` | JWT auth, projects with members, drag-and-drop Kanban with server-enforced WIP limits, task checklists + comments, activity feed, board health analytics |
 | 6 | 2026-11-04 | Orbit — MERN Social App | `mern-social-app/` | JWT auth, follow graph, posts with a transparent scored feed (engagement × freshness decay + follow affinity), time-decayed trending hashtags, likes/comments, Socket.io live notifications |
 | 7 | 2026-11-05 | FoodFleet — MERN Food Delivery Platform | `mern-food-delivery/` | JWT auth with customer/restaurant roles, restaurant + menu browsing with cuisine/veg filters, cart checkout with server-side pricing, promo codes and GST, live order tracking over Socket.io (state machine + simulated delivery), owner dashboard with order advance and analytics |
+| 8 | 2026-11-06 | PaisaPilot — MERN Personal Finance Dashboard | `mern-finance-dashboard/` | JWT auth, multi-account ledger with transfers, categorised transactions with automatic balance updates, monthly budgets with burn-rate projection, savings goals, recurring payments with due generation, CSV export, server-side analytics engine (totals, spend-by-category vs budget, daily trend, month-end forecast, insights) |
 
 ## How to run a project
 

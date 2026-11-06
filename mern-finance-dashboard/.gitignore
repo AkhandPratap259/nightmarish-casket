@@ -1,0 +1,6 @@
+node_modules/
+dist/
+.env
+# server/.env is intentionally committed: it holds dev defaults ONLY
+# (no real secrets) so the project runs out of the box.
+!server/.env
