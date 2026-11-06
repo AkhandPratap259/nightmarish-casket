@@ -23,3 +23,4 @@ Each project folder has its own README with setup instructions. In general:
 cd <project>/server && npm install && npm run dev
 cd <project>/client && npm install && npm run dev
 ```
+| 9 | 2026-11-06 | ResumeForge — AI Resume Builder | `mern-resume-builder/` | JWT auth, resume CRUD, 3 live editorial templates, rule-based ATS-style score + keyword coverage, bullet improver with optional OpenAI/Gemini layer and working rule-based fallback, JSON export + print/PDF |

@@ -1,0 +1,6 @@
+node_modules/
+dist/
+.DS_Store
+# server/.env is intentionally NOT ignored: it ships with dev defaults only
+# (no real secrets). Never add a real Atlas URI or API key to it.
+.env.local
