@@ -29,16 +29,21 @@ server-side analytics engine that produces insights and month-end forecasts.
 - **Hand-rolled SVG charts** — animated spending donut and daily-spend bar chart,
   no chart library.
 
-## Theme — "Ledger desk"
+## Theme — "Aurora Neon" (Style D, picked by the owner)
 
-Ivory paper background, deep forest-green ink, gold accents, Georgia serif display
-type and tabular numerals, in a 3-column desk layout: left rail (accounts + net
-worth), centre (KPIs, charts, transactions), right rail (insights + goals).
+Deep indigo background with violet, cyan and pink aurora glows, glass cards,
+glowing numerals, in a 3-column layout: left rail (accounts + net worth),
+centre (KPIs, charts, transactions), right rail (insights + goals).
 Interactive upgrades over the previous project (FoodFleet): count-up KPI numbers,
 donut segments that sweep in, bar-chart bars that grow on month change, budget burn
 bars with an overspend pulse, animated goal rings, hover tilt on goal cards,
-reveal-on-scroll, and an animated month switcher. All animation respects
-`prefers-reduced-motion`.
+reveal-on-scroll, an animated month switcher, and a cursor effect — a small
+glowing ring and a fading trail follow the mouse, cards light up with a
+spotlight under the cursor, the ring expands over buttons and inputs, and
+clicks bloom a small ripple where you pressed. (Deliberately no large glow
+orb behind the cursor.)
+All animation respects `prefers-reduced-motion` (the cursor effect is off for
+reduced motion and touch devices).
 
 ## Tech stack
 

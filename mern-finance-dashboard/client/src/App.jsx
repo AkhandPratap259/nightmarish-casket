@@ -54,6 +54,95 @@ function CountUp({ value, prefix = '' }) {
   );
 }
 
+// Cursor effect: a small glowing ring and a fading trail of dots follow
+// the mouse with smooth lag, cards light up with a spotlight under the
+// cursor, and every click blooms a small ripple where you pressed.
+// (No large glow orb: the owner found the big colourful ring behind the
+// cursor unnecessary.) Disabled for touch devices and reduced motion.
+function CursorGlow() {
+  const ringRef = useRef(null);
+  const trailRefs = useRef([]);
+  const rippleLayerRef = useRef(null);
+  useEffect(() => {
+    if (reducedMotion() || window.matchMedia('(pointer: coarse)').matches) return;
+    let tx = window.innerWidth / 2;
+    let ty = window.innerHeight / 2;
+    let rx = tx;
+    let ry = ty;
+    const trail = Array.from({ length: 6 }, () => ({ x: tx, y: ty }));
+    let raf;
+    const onMove = (e) => {
+      tx = e.clientX;
+      ty = e.clientY;
+      const card = e.target.closest?.('.panel, .kpi');
+      if (card) {
+        const r = card.getBoundingClientRect();
+        card.style.setProperty('--mx', `${e.clientX - r.left}px`);
+        card.style.setProperty('--my', `${e.clientY - r.top}px`);
+      }
+      const hot = e.target.closest?.('button, a, input, select');
+      ringRef.current?.classList.toggle('is-active', !!hot);
+    };
+    const onDown = (e) => {
+      const layer = rippleLayerRef.current;
+      if (!layer) return;
+      const el = document.createElement('span');
+      el.className = 'cursor-ripple';
+      el.style.left = `${e.clientX}px`;
+      el.style.top = `${e.clientY}px`;
+      layer.appendChild(el);
+      setTimeout(() => el.remove(), 700);
+    };
+    const loop = () => {
+      rx += (tx - rx) * 0.3;
+      ry += (ty - ry) * 0.3;
+      if (ringRef.current) ringRef.current.style.transform = `translate(${rx}px, ${ry}px)`;
+      let px = rx;
+      let py = ry;
+      trail.forEach((p, i) => {
+        p.x += (px - p.x) * 0.35;
+        p.y += (py - p.y) * 0.35;
+        px = p.x;
+        py = p.y;
+        const el = trailRefs.current[i];
+        if (el) {
+          const s = 14 - i * 2;
+          el.style.width = `${s}px`;
+          el.style.height = `${s}px`;
+          el.style.margin = `${-s / 2}px 0 0 ${-s / 2}px`;
+          el.style.transform = `translate(${p.x}px, ${p.y}px)`;
+          el.style.opacity = String(0.7 - i * 0.1);
+        }
+      });
+      raf = requestAnimationFrame(loop);
+    };
+    window.addEventListener('mousemove', onMove, { passive: true });
+    window.addEventListener('mousedown', onDown, { passive: true });
+    raf = requestAnimationFrame(loop);
+    return () => {
+      window.removeEventListener('mousemove', onMove);
+      window.removeEventListener('mousedown', onDown);
+      cancelAnimationFrame(raf);
+    };
+  }, []);
+  return (
+    <>
+      <div ref={rippleLayerRef} className="cursor-ripple-layer" aria-hidden="true" />
+      <div ref={ringRef} className="cursor-ring" aria-hidden="true" />
+      {Array.from({ length: 6 }, (_, i) => (
+        <div
+          key={i}
+          ref={(el) => {
+            trailRefs.current[i] = el;
+          }}
+          className="cursor-trail"
+          aria-hidden="true"
+        />
+      ))}
+    </>
+  );
+}
+
 // Reveal-on-scroll wrapper.
 function Reveal({ children, className = '' }) {
   const ref = useRef(null);
@@ -91,7 +180,7 @@ function Donut({ data }) {
   return (
     <div className="donut-wrap">
       <svg viewBox="0 0 120 120" className="donut">
-        <circle cx="60" cy="60" r="45" fill="none" stroke="#e9e2d2" strokeWidth="16" />
+        <circle cx="60" cy="60" r="45" fill="none" stroke="#2a2350" strokeWidth="16" />
         {total > 0 &&
           data.map((c) => {
             const pct = (c.spent / total) * 100;
@@ -168,7 +257,7 @@ function GoalRing({ pct, colour }) {
   }, [pct]);
   return (
     <svg viewBox="0 0 64 64" className="goal-ring">
-      <circle cx="32" cy="32" r={r} fill="none" stroke="#e9e2d2" strokeWidth="6" />
+      <circle cx="32" cy="32" r={r} fill="none" stroke="#2a2350" strokeWidth="6" />
       <circle
         cx="32"
         cy="32"
@@ -217,6 +306,7 @@ function AuthScreen({ onAuth }) {
 
   return (
     <div className="auth-page">
+      <CursorGlow />
       <div className="auth-card reveal visible">
         <div className="brand-mark">₹</div>
         <h1>PaisaPilot</h1>
@@ -433,6 +523,7 @@ export default function App() {
 
   return (
     <div className="app">
+      <CursorGlow />
       <header className="topbar">
         <div className="brand">
           <span className="brand-mark">₹</span>
