@@ -24,3 +24,4 @@ cd <project>/server && npm install && npm run dev
 cd <project>/client && npm install && npm run dev
 ```
 | 9 | 2026-11-06 | ResumeForge — AI Resume Builder | `mern-resume-builder/` | JWT auth, resume CRUD, 3 live editorial templates, rule-based ATS-style score + keyword coverage, bullet improver with optional OpenAI/Gemini layer and working rule-based fallback, JSON export + print/PDF |
+| 10 | 2026-11-07 | MediBook — Healthcare Appointment Booking | `mern-appointment-booking/` | JWT auth with patient/doctor/admin roles, slot-generation engine from doctor weekly schedules, conflict-free booking (partial unique index), appointment lifecycle with rescheduling, waitlist with auto-promotion on cancellation, visit notes + prescriptions, Socket.io live notifications, admin analytics (bookings by speciality, doctor utilisation, daily trend) |

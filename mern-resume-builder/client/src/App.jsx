@@ -7,13 +7,16 @@ import { TEMPLATES, TEMPLATE_IDS, STATUS_LABELS, DEMO, ENGINE_LABELS } from './d
 const API = '/api';
 
 async function api(path, { method = 'GET', body, token } = {}) {
+  // GET/HEAD requests must never carry a body — the browser throws
+  // "Request with GET/HEAD method cannot have body" if one is attached.
+  const hasBody = method !== 'GET' && method !== 'HEAD' && body !== undefined;
   const res = await fetch(`${API}${path}`, {
     method,
     headers: {
       'Content-Type': 'application/json',
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
     },
-    body: body ? JSON.stringify(body) : undefined,
+    ...(hasBody ? { body: JSON.stringify(body) } : {}),
   });
   const data = await res.json().catch(() => ({}));
   if (!res.ok) throw new Error(data.message || `Request failed (${res.status})`);
@@ -105,14 +108,17 @@ export default function App() {
       window.removeEventListener('scroll', onScroll);
       io.disconnect();
     };
-  }, [view, active]);
+    // resumes is a dep on purpose: rows render after the async fetch, and
+    // elements that mount later must be observed too — otherwise they stay
+    // invisible at opacity 0 (the dashboard list never appeared).
+  }, [view, active, resumes]);
 
   async function handleAuth(e) {
     e.preventDefault();
     setAuthError('');
     try {
       const path = authMode === 'login' ? '/auth/login' : '/auth/register';
-      const data = await api(path, { body: authForm });
+      const data = await api(path, { method: 'POST', body: authForm });
       localStorage.setItem('resumeforge-token', data.token);
       setToken(data.token);
       setUser(data.user);
