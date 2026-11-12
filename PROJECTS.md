@@ -17,6 +17,7 @@ MERN projects, each in its own folder.
 | 2026-11-06 | ResumeForge — AI Resume Builder | `mern-resume-builder/` | JWT auth, resume CRUD, 3 live editorial templates, rule-based ATS-style score + keyword coverage, bullet improver with optional OpenAI/Gemini layer and working rule-based fallback, JSON export + print/PDF |
 | 2026-11-07 | MediBook — Healthcare Appointment Booking | `mern-appointment-booking/` | JWT auth with patient/doctor/admin roles, slot-generation engine from doctor weekly schedules, conflict-free booking (partial unique index), appointment lifecycle with rescheduling, waitlist with auto-promotion on cancellation, visit notes + prescriptions, Socket.io live notifications, admin analytics (bookings by speciality, doctor utilisation, daily trend) |
 | 2026-11-09 | Gatherly — Event Discovery & Ticketing | `mern-event-ticketing/` | JWT auth with attendee/organizer/admin roles, event discovery with category/city/date filters, interactive SVG seat map with tiered zones, 5-minute seat holds with expiry countdown and conflict-proof booking, mock checkout with e-tickets, waitlist with auto-promotion, Socket.io live seat updates, organizer + admin analytics |
+| 2026-11-10 | Voyara — Travel Itinerary Planner | `mern-travel-planner/` | JWT auth, trips with auto-generated day shells, day-by-day itinerary with server-side time-conflict detection (409 on overlap), drag-to-reorder activities, live budget burn-down with over-budget warnings, packing checklist with essentials template + progress ring, collaborator invites (viewer/editor), Socket.io live updates, trip analytics |
 
 ## How to run a project
 
@@ -26,3 +27,4 @@ Each project folder has its own README with setup instructions. In general:
 cd <project>/server && npm install && npm run dev
 cd <project>/client && npm install && npm run dev
 ```
+
