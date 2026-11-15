@@ -31,3 +31,4 @@ cd <project>/client && npm install && npm run dev
 ```
 
 
+| 2026-11-15 | LinguaLeap — Gamified Language Learning Platform | `mern-language-learning/` | JWT auth with learner/instructor/admin roles, 4 languages with 24 skill-tree lessons (unlock in sequence), lesson engine with 4 exercise types incl. speech-synthesis listening, server-side hearts/XP/levels/streaks/achievements, spaced-repetition review deck, weekly leaderboard with Socket.io live updates, vocabulary bank, instructor lesson authoring, admin overview |
