@@ -1,0 +1,13 @@
+# FundForge
+node_modules/
+dist/
+.env.local
+.env.*.local
+*.log
+.DS_Store
+previews/
+
+# Note: server/.env is intentionally NOT ignored — it ships with safe
+# local-development defaults only (no real secrets) so the project runs
+# straight after cloning. A real Atlas URI or any real credential must
+# never be committed: put it in your own local copy only.

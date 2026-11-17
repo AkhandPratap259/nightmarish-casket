@@ -20,7 +20,8 @@ MERN projects, each in its own folder.
 | 2026-11-10 | Voyara — Travel Itinerary Planner | `mern-travel-planner/` | JWT auth, trips with auto-generated day shells, day-by-day itinerary with server-side time-conflict detection (409 on overlap), drag-to-reorder activities, live budget burn-down with over-budget warnings, packing checklist with essentials template + progress ring, collaborator invites (viewer/editor), Socket.io live updates, trip analytics |
 | 2026-11-11 | NestHunt — Real Estate Listing Platform | `mern-real-estate/` | JWT auth with buyer/agent/admin roles, property search with server-side filters/sort/pagination, favourites, comparison matrix with server-computed summary, EMI calculator (live sliders + server endpoint), price analytics by locality from live listings, saved searches with Socket.io match alerts, enquiries with agent replies, admin overview |
 | 2026-11-14 | BidSphere — Real-Time Auction Platform | `mern-auction-platform/` | JWT auth with bidder/seller/admin roles, lot browse with search/category/sort/pagination, live bidding engine with atomic bid validation and anti-sniping auto-extension, Socket.io live bid feed with outbid alerts, watchlist, seller dashboard with my-bids win/lose status, admin overview |
-
+| 2026-11-15 | LinguaLeap — Gamified Language Learning Platform | `mern-language-learning/` | JWT auth with learner/instructor/admin roles, 4 languages with 24 skill-tree lessons (unlock in sequence), lesson engine with 4 exercise types incl. speech-synthesis listening, server-side hearts/XP/levels/streaks/achievements, spaced-repetition review deck, weekly leaderboard with Socket.io live updates, vocabulary bank, instructor lesson authoring, admin overview |
+| 2026-11-16 | FundForge — Crowdfunding Platform | `mern-crowdfunding/` | JWT auth with backer/creator/admin roles, campaign discovery with category/status filters, funding engine with live pledged totals, stretch goals and atomic reward-tier pledges (race-safe), campaign lifecycle state machine with deadline auto-close, mock pledges, comments + creator updates, Socket.io live pledge feed, creator dashboard with analytics, admin moderation |
 ## How to run a project
 
 Each project folder has its own README with setup instructions. In general:
@@ -30,5 +31,3 @@ cd <project>/server && npm install && npm run dev
 cd <project>/client && npm install && npm run dev
 ```
 
-
-| 2026-11-15 | LinguaLeap — Gamified Language Learning Platform | `mern-language-learning/` | JWT auth with learner/instructor/admin roles, 4 languages with 24 skill-tree lessons (unlock in sequence), lesson engine with 4 exercise types incl. speech-synthesis listening, server-side hearts/XP/levels/streaks/achievements, spaced-repetition review deck, weekly leaderboard with Socket.io live updates, vocabulary bank, instructor lesson authoring, admin overview |
