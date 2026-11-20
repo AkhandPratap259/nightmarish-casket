@@ -24,6 +24,8 @@ MERN projects, each in its own folder.
 | 2026-11-16 | FundForge — Crowdfunding Platform | `mern-crowdfunding/` | JWT auth with backer/creator/admin roles, campaign discovery with category/status filters, funding engine with live pledged totals, stretch goals and atomic reward-tier pledges (race-safe), campaign lifecycle state machine with deadline auto-close, mock pledges, comments + creator updates, Socket.io live pledge feed, creator dashboard with analytics, admin moderation |
 | 2026-11-17 | PulseFit — MERN Fitness Tracker | `mern-fitness-tracker/` | JWT auth with member/trainer/admin roles, 28-exercise library with custom exercises, workout templates with drag-to-reorder, live session logging with rest timer and live volume ring, automatic personal records with Epley 1RM and progressive-overload suggestions, analytics (8-week volume chart, muscle split, week streak), challenges with auto-tracked progress and leaderboards, trainer multi-week plans, Socket.io live session feed, admin overview |
 | 2026-11-18 | TaskTrove — Local Services Marketplace | `mern-services-marketplace/` | JWT auth with customer/provider/admin roles, service discovery with match-score ranking, conflict-proof slot booking, live booking updates via Socket.io, reviews, provider dashboard with earnings, admin overview |
+| 2026-11-20 | FairShare — Group Expense Splitter | `mern-expense-splitter/` | JWT auth with member/admin roles, groups with email member invites, expenses with 4 server-validated split modes (equal/exact/percentage/shares, penny-exact), live net balances, greedy min-cash-flow debt simplification into a minimal settlement plan, settlements with over-payment rejection, category/month analytics, dashboard, Socket.io live updates, admin overview |
+
 ## How to run a project
 
 Each project folder has its own README with setup instructions. In general:
@@ -32,4 +34,3 @@ Each project folder has its own README with setup instructions. In general:
 cd <project>/server && npm install && npm run dev
 cd <project>/client && npm install && npm run dev
 ```
-
