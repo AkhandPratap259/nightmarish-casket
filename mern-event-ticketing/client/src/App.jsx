@@ -1,42 +1,11 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { io } from 'socket.io-client';
 import { api, setToken, formatDate, formatDateTime, inr } from './api';
 import { config, copy } from './data/config';
 import Cursor from './components/Cursor';
 import Dialog from './components/Dialog';
 import SeatMap from './components/SeatMap';
-
-// Reveal-on-scroll: the element stays full-size and a curtain overlay
-// slides away when it enters view — never a clip-path collapse, so the
-// content is never hidden if the observer never fires.
-function Reveal({ children, className = '' }) {
-  const ref = useRef(null);
-  const [visible, setVisible] = useState(false);
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return undefined;
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      setVisible(true);
-      return undefined;
-    }
-    const obs = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setVisible(true);
-          obs.disconnect();
-        }
-      },
-      { threshold: 0.15 }
-    );
-    obs.observe(el);
-    return () => obs.disconnect();
-  }, []);
-  return (
-    <div ref={ref} className={`reveal ${visible ? 'is-visible' : ''} ${className}`}>
-      {children}
-    </div>
-  );
-}
+import CommandPalette from './components/CommandPalette';
 
 function OccupancyBar({ sold, total }) {
   const pct = total ? Math.round((sold / total) * 100) : 0;
@@ -65,17 +34,18 @@ function HoldCountdown({ expiresAt, onExpire }) {
   }, [expiresAt, onExpire]);
   const total = 300;
   const frac = left / total;
-  const r = 26;
+  const r = 36;
   const circ = 2 * Math.PI * r;
   const mm = String(Math.floor(left / 60)).padStart(1, '0');
   const ss = String(left % 60).padStart(2, '0');
+  const urgent = left <= 60 && left > 0;
   return (
-    <div className="hold-ring" role="timer" aria-live="off" aria-label={`Hold expires in ${mm} minutes ${ss} seconds`}>
-      <svg width="64" height="64" viewBox="0 0 64 64" aria-hidden="true">
-        <circle cx="32" cy="32" r={r} className="ring-track" />
+    <div className={`hold-ring${urgent ? ' urgent' : ''}`} role="timer" aria-live="off" aria-label={`Hold expires in ${mm} minutes ${ss} seconds`}>
+      <svg width="84" height="84" viewBox="0 0 84 84" aria-hidden="true">
+        <circle cx="42" cy="42" r={r} className="ring-track" />
         <circle
-          cx="32"
-          cy="32"
+          cx="42"
+          cy="42"
           r={r}
           className="ring-fill"
           strokeDasharray={circ}
@@ -99,6 +69,8 @@ export default function App() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [progress, setProgress] = useState(0);
   const [liveFeed, setLiveFeed] = useState([]);
+  const [paletteOpen, setPaletteOpen] = useState(false);
+  const [wipe, setWipe] = useState(0);
   const socketRef = useRef(null);
 
   const showToast = useCallback((msg) => {
@@ -143,6 +115,17 @@ export default function App() {
   }, [user, loadNotifications]);
 
   useEffect(() => {
+    const onKey = (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setPaletteOpen((o) => !o);
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
+
+  useEffect(() => {
     const onScroll = () => {
       const h = document.documentElement;
       const max = h.scrollHeight - h.clientHeight;
@@ -156,6 +139,9 @@ export default function App() {
     setView(v);
     if (id) setEventId(id);
     setMenuOpen(false);
+    setPaletteOpen(false);
+    // Split-panel open (E6): two navy panels sweep apart to reveal the view.
+    setWipe((w) => w + 1);
     window.scrollTo({ top: 0 });
   };
 
@@ -237,6 +223,10 @@ export default function App() {
             Get tickets
           </button>
         )}
+        <button type="button" className="cmd-btn" onClick={() => setPaletteOpen(true)} aria-label="Open quick actions (Control K)">
+          <span className="kbd" aria-hidden="true">⌘K</span>
+          <span className="cmd-label">Quick actions</span>
+        </button>
       </header>
 
       <main id="main">
@@ -248,6 +238,14 @@ export default function App() {
         {view === 'admin' && <AdminView showToast={showToast} />}
         {view === 'auth' && <AuthView onSignedIn={(u) => { setUser(u); go(u.role === 'organizer' ? 'organizer' : u.role === 'admin' ? 'admin' : 'events'); }} showToast={showToast} />}
       </main>
+
+      {wipe > 0 && (
+        <div className="route-wipe" key={wipe} aria-hidden="true" onAnimationEnd={() => setWipe(0)}>
+          <span className="wipe-panel wipe-a" />
+          <span className="wipe-panel wipe-b" />
+        </div>
+      )}
+      <CommandPalette open={paletteOpen} onClose={() => setPaletteOpen(false)} go={go} user={user} onSignOut={signOut} />
 
       <footer>
         <div className="wrap">
@@ -330,42 +328,104 @@ function Home({ user, go, liveFeed }) {
     }).catch(() => {});
   }, []);
 
-  const featured = events.slice(0, 3);
+  // Timeline spine: soonest first, from real API data.
+  const featured = [...events]
+    .sort((a, b) => new Date(a.date) - new Date(b.date))
+    .slice(0, 6);
   const previewEvent = { title: 'Seat map preview', zones: config.defaultZones };
+  const maxSold = Math.max(1, ...events.map((e) => e.sold || 0));
 
   return (
     <>
       <section className="hero" aria-labelledby="hero-title">
-        <div className="hero-left">
-          <p className="eyebrow"><span className="num">(01)</span> {copy.heroEyebrow}</p>
-          <h1 id="hero-title">
-            {copy.heroHeadline} <em>{copy.heroEmphasis}</em>
-          </h1>
-          <p className="lede">{copy.heroText}</p>
-          <div className="hero-ctas">
-            <button type="button" className="btn btn-primary" onClick={() => go('events')}>
-              Browse events →
-            </button>
-            <button type="button" className="btn" onClick={() => go(user ? 'mine' : 'auth')}>
-              {user ? 'My tickets' : 'Sign in'}
-            </button>
+        <div className="wrap">
+          <div className="scoreboard" role="status" aria-label="Live demo scoreboard">
+            <span className="live-bug"><span className="live-dot" aria-hidden="true" /> Live · demo data</span>
+            <div className="score-cells">
+              <div className="score-cell"><span className="score-num">{soldTotal}</span><span className="score-label">Tickets sold</span></div>
+              <div className="score-cell"><span className="score-num">{events.length || '—'}</span><span className="score-label">Events listed</span></div>
+              <div className="score-cell"><span className="score-num">{config.cities.length}</span><span className="score-label">Cities</span></div>
+            </div>
           </div>
-          <div className="hero-stat" aria-label="Platform summary">
-            <div><b>{events.length || '—'}</b><span>events listed</span></div>
-            <div><b>{config.cities.length}</b><span>cities</span></div>
-            <div><b>{soldTotal}</b><span>tickets sold (demo data)</span></div>
-          </div>
-        </div>
-        <div className="hero-right">
-          <p className="eyebrow" style={{ color: '#bef264' }}><span className="num">(02)</span> The seat map</p>
-          <h2 style={{ fontSize: 'clamp(1.6rem, 3vw, 2.2rem)' }}>
-            Pick the exact seat, <em>not a zone.</em>
-          </h2>
-          <p className="muted" style={{ color: '#b8b0a2', marginTop: 10 }}>
-            Illustrative preview — a coded seat map, not a screenshot. VIP up front by the stage, Standard at the back.
-          </p>
-          <div className="hero-seatmap">
-            <SeatMap event={previewEvent} seats={previewSeats()} selected={['C5', 'C6']} interactive={false} />
+          <div className="hero-split">
+            <div className="hero-sticky">
+              <div>
+                <p className="eyebrow"><span className="num">01</span> {copy.heroEyebrow}</p>
+                <h1 id="hero-title" aria-label="Find your night, book your seat.">
+                  {copy.heroHeadline} <span className="h1-accent">{copy.heroEmphasis}</span>
+                </h1>
+                <p className="lede">{copy.heroText}</p>
+              </div>
+              <div className="hero-ctas">
+                <button type="button" className="btn btn-primary" onClick={() => go('events')}>
+                  Browse events →
+                </button>
+                <button type="button" className="btn" onClick={() => go(user ? 'mine' : 'auth')}>
+                  {user ? 'My tickets' : 'Sign in'}
+                </button>
+              </div>
+              <div>
+                <div className="hero-seatmap">
+                  <SeatMap event={previewEvent} seats={previewSeats()} selected={['C5', 'C6']} interactive={false} />
+                </div>
+                <p className="hero-seatmap-caption">
+                  Illustrative preview — a coded seat map, not a screenshot. VIP up front by the stage, Standard at the back.
+                </p>
+              </div>
+            </div>
+            <div>
+              <p className="eyebrow"><span className="num">02</span> Coming up — the timeline</p>
+              <h2>Next on the <span className="h1-accent">calendar.</span></h2>
+              {featured.length === 0 ? (
+                <p className="empty">No events listed yet.</p>
+              ) : (
+                <div className="timeline">
+                  <div className="event-list">
+                    {featured.map((e) => (
+                      <article className="event-row" key={e.id}>
+                        <span className="tl-node" aria-hidden="true">
+                          <b>{new Date(e.date).getDate()}</b>
+                          <span>{new Date(e.date).toLocaleDateString('en-IN', { month: 'short' })}</span>
+                        </span>
+                        <div>
+                          <h3>{e.title}</h3>
+                          <p className="sub">{formatDateTime(e.date)} · {e.venue}, {e.city}</p>
+                          <span className="chip">{e.category}</span>
+                          {e.demo && <span className="chip chip-demo">Demo event</span>}
+                        </div>
+                        <div className="occ-col">
+                          <OccupancyBar sold={e.sold} total={e.totalSeats} />
+                          <span className="muted" style={{ fontSize: '.85rem' }}>{e.available} of {e.totalSeats} seats left</span>
+                        </div>
+                        <div className="fee">{inr(Math.min(...e.zones.map((z) => z.price)))}<span>from</span></div>
+                        <button type="button" className="btn btn-primary btn-sm" onClick={() => go('event', e.id)}>
+                          View seats →
+                        </button>
+                      </article>
+                    ))}
+                  </div>
+                </div>
+              )}
+              <div className="scoreboard" style={{ marginTop: 28 }} role="img" aria-label="Tickets sold per event">
+                <p className="score-chart-title">Scoreboard — tickets sold per event</p>
+                <div className="score-chart">
+                  {events.length === 0 ? (
+                    <p style={{ color: '#c7d0e8', margin: 0 }}>Loading the scoreboard…</p>
+                  ) : (
+                    events.slice(0, 5).map((e) => (
+                      <div className="score-row" key={e.id}>
+                        <span className="score-row-label">{e.title}</span>
+                        <div className="score-track"><div className="score-fill" style={{ width: `${Math.round(((e.sold || 0) / maxSold) * 100)}%` }} /></div>
+                        <span className="score-val">{e.sold || 0}</span>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+              <div style={{ marginTop: 28 }}>
+                <button type="button" className="btn" onClick={() => go('events')}>See all events →</button>
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -383,73 +443,36 @@ function Home({ user, go, liveFeed }) {
         )}
       </div>
 
-      <section aria-labelledby="featured-title">
-        <div className="wrap">
-          <p className="eyebrow"><span className="num">(03)</span> Coming up</p>
-          <h2 id="featured-title">Next on the <em>calendar.</em></h2>
-          {featured.length === 0 ? (
-            <p className="empty">No events listed yet.</p>
-          ) : (
-            <div className="event-list">
-              {featured.map((e, i) => (
-                <Reveal key={e.id} className="event-row-wrap">
-                  <article className="event-row">
-                    <span className="idx" aria-hidden="true">{String(i + 1).padStart(2, '0')}</span>
-                    <div>
-                      <h3>{e.title}</h3>
-                      <p className="sub">{formatDateTime(e.date)} · {e.venue}, {e.city}</p>
-                      <span className="chip">{e.category}</span>
-                      {e.demo && <span className="chip chip-demo">Demo event</span>}
-                    </div>
-                    <div className="occ-col">
-                      <OccupancyBar sold={e.sold} total={e.totalSeats} />
-                      <span className="muted" style={{ fontSize: '.85rem' }}>{e.available} of {e.totalSeats} seats left</span>
-                    </div>
-                    <div className="fee">{inr(Math.min(...e.zones.map((z) => z.price)))}<span>from</span></div>
-                    <button type="button" className="btn btn-primary btn-sm" onClick={() => go('event', e.id)}>
-                      View seats →
-                    </button>
-                  </article>
-                </Reveal>
-              ))}
-            </div>
-          )}
-          <div style={{ marginTop: 28 }}>
-            <button type="button" className="btn" onClick={() => go('events')}>See all events →</button>
-          </div>
-        </div>
-      </section>
-
       <section aria-labelledby="how-title">
         <div className="wrap">
-          <p className="eyebrow"><span className="num">(04)</span> How it works</p>
-          <h2 id="how-title">Three steps to <em>your seat.</em></h2>
-          <div className="how">
+          <p className="eyebrow"><span className="num">03</span> How it works</p>
+          <h2 id="how-title">Three steps to <span className="h1-accent">your seat.</span></h2>
+          <ol className="step-rail">
             {copy.howItWorks.map((s) => (
-              <Reveal key={s.n}>
-                <article>
-                  <span className="n">{s.n}</span>
-                  <h3>{s.title}</h3>
-                  <p>{s.text}</p>
-                </article>
-              </Reveal>
+              <li className="step" key={s.n}>
+                <span className="step-node" aria-hidden="true">{s.n}</span>
+                <h3>{s.title}</h3>
+                <p>{s.text}</p>
+              </li>
             ))}
-          </div>
+          </ol>
         </div>
       </section>
 
-      <section className="dark" aria-labelledby="soldout-title">
+      <section aria-labelledby="soldout-title">
         <div className="wrap">
-          <p className="eyebrow" style={{ color: '#bef264' }}><span className="num">(05)</span> Sold out? Not quite</p>
-          <h2 id="soldout-title">Join the waitlist, <em>get the seat.</em></h2>
-          <p className="lede" style={{ marginTop: 16 }}>
-            When an event sells out, join its waitlist. The moment someone cancels, the first
-            person waiting is notified live and can book the freed seats before anyone else.
-          </p>
-          <div style={{ marginTop: 28 }}>
-            <button type="button" className="btn btn-primary" onClick={() => go('events')}>
-              Browse events →
-            </button>
+          <div className="waitlist-panel">
+            <p className="eyebrow"><span className="num">04</span> Sold out? Not quite</p>
+            <h2 id="soldout-title">Join the waitlist, <span className="h1-accent">get the seat.</span></h2>
+            <p className="lede" style={{ marginTop: 16 }}>
+              When an event sells out, join its waitlist. The moment someone cancels, the first
+              person waiting is notified live and can book the freed seats before anyone else.
+            </p>
+            <div style={{ marginTop: 28 }}>
+              <button type="button" className="btn btn-primary" onClick={() => go('events')}>
+                Browse events →
+              </button>
+            </div>
           </div>
         </div>
       </section>
@@ -464,6 +487,20 @@ function EventList({ user, go, showToast }) {
   const [city, setCity] = useState('');
   const [date, setDate] = useState('');
   const [q, setQ] = useState('');
+  const [sort, setSort] = useState('date');
+  const listRef = useRef(null);
+  const prevRects = useRef(new Map());
+
+  // FLIP (D7): capture row positions before the list changes, then animate
+  // each row from its old position to its new one when filters or sort move it.
+  const captureRects = () => {
+    const map = new Map();
+    listRef.current?.querySelectorAll('[data-event-id]').forEach((el) => {
+      const r = el.getBoundingClientRect();
+      map.set(el.dataset.eventId, { top: r.top, left: r.left });
+    });
+    prevRects.current = map;
+  };
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -474,6 +511,7 @@ function EventList({ user, go, showToast }) {
       if (date) params.date = date;
       if (q) params.search = q;
       const data = await api.events(params);
+      captureRects();
       setEvents(data.events || []);
     } catch (e) {
       showToast(e.message);
@@ -484,12 +522,49 @@ function EventList({ user, go, showToast }) {
 
   useEffect(() => { load(); }, [load]);
 
+  const displayed = useMemo(() => {
+    const list = [...events];
+    if (sort === 'price') {
+      list.sort((a, b) => Math.min(...a.zones.map((z) => z.price)) - Math.min(...b.zones.map((z) => z.price)));
+    } else if (sort === 'occupancy') {
+      list.sort((a, b) => (b.sold / (b.totalSeats || 1)) - (a.sold / (a.totalSeats || 1)));
+    } else {
+      list.sort((a, b) => new Date(a.date) - new Date(b.date));
+    }
+    return list;
+  }, [events, sort]);
+
+  useLayoutEffect(() => {
+    const list = listRef.current;
+    if (!list) return;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      prevRects.current = new Map();
+      return;
+    }
+    list.querySelectorAll('[data-event-id]').forEach((el) => {
+      const prev = prevRects.current.get(el.dataset.eventId);
+      if (!prev) return; // new row: fades in via CSS only
+      const r = el.getBoundingClientRect();
+      const dy = prev.top - r.top;
+      const dx = prev.left - r.left;
+      if (dx || dy) {
+        el.style.transition = 'none';
+        el.style.transform = `translate(${dx}px, ${dy}px)`;
+        requestAnimationFrame(() => {
+          el.style.transition = 'transform 180ms cubic-bezier(0.2, 0, 0, 1)';
+          el.style.transform = '';
+        });
+      }
+    });
+    prevRects.current = new Map();
+  }, [displayed]);
+
   return (
     <section aria-labelledby="browse-title">
       <div className="wrap">
-        <p className="eyebrow"><span className="num">(01)</span> Browse</p>
+        <p className="eyebrow"><span className="num">01</span> Browse</p>
         <h1 id="browse-title" style={{ fontSize: 'clamp(2.2rem, 5vw, 3.6rem)' }}>
-          Every event, <em>every seat.</em>
+          Every event, <span className="h1-accent">every seat.</span>
         </h1>
         <p className="lede" style={{ marginTop: 14 }}>
           Demo listing — every event shown is fictional demo data seeded for trying the app.
@@ -518,39 +593,52 @@ function EventList({ user, go, showToast }) {
             <label htmlFor="f-date">Date</label>
             <input id="f-date" type="date" value={date} onChange={(e) => setDate(e.target.value)} />
           </div>
+          <div className="field">
+            <label htmlFor="f-sort">Sort by</label>
+            <select id="f-sort" value={sort} onChange={(e) => { captureRects(); setSort(e.target.value); }}>
+              <option value="date">Soonest first</option>
+              <option value="price">Lowest price first</option>
+              <option value="occupancy">Most sold first</option>
+            </select>
+          </div>
         </div>
 
         {loading ? (
           <p className="muted">Loading events…</p>
-        ) : events.length === 0 ? (
+        ) : displayed.length === 0 ? (
           <p className="empty">No events match those filters. Try clearing the search or date.</p>
         ) : (
-          <div className="event-list">
-            {events.map((e, i) => {
-              const pct = e.totalSeats ? Math.round((e.sold / e.totalSeats) * 100) : 0;
-              return (
-                <article className="event-row" key={e.id} style={{ animationDelay: `${Math.min(i, 8) * 40}ms` }}>
-                  <span className="idx" aria-hidden="true">{String(i + 1).padStart(2, '0')}</span>
-                  <div>
-                    <h3>{e.title}</h3>
-                    <p className="sub">{formatDateTime(e.date)} · {e.venue}, {e.city}</p>
-                    <p className="sub">{e.description}</p>
-                    <span className="chip">{e.category}</span>
-                    {e.demo && <span className="chip chip-demo">Demo event</span>}
-                    {pct >= 80 && e.available > 0 && <span className="chip chip-hot">Selling fast</span>}
-                    {e.available === 0 && <span className="chip chip-sold">Sold out</span>}
-                  </div>
-                  <div className="occ-col">
-                    <OccupancyBar sold={e.sold} total={e.totalSeats} />
-                    <span className="muted" style={{ fontSize: '.85rem' }}>{e.available} of {e.totalSeats} seats left</span>
-                  </div>
-                  <div className="fee">{inr(Math.min(...e.zones.map((z) => z.price)))}<span>from</span></div>
-                  <button type="button" className="btn btn-primary btn-sm" onClick={() => go('event', e.id)}>
-                    {e.available === 0 ? 'Join waitlist' : 'View seats →'}
-                  </button>
-                </article>
-              );
-            })}
+          <div className="timeline" ref={listRef}>
+            <div className="event-list">
+              {displayed.map((e) => {
+                const pct = e.totalSeats ? Math.round((e.sold / e.totalSeats) * 100) : 0;
+                return (
+                  <article className="event-row" key={e.id} data-event-id={e.id}>
+                    <span className="tl-node" aria-hidden="true">
+                      <b>{new Date(e.date).getDate()}</b>
+                      <span>{new Date(e.date).toLocaleDateString('en-IN', { month: 'short' })}</span>
+                    </span>
+                    <div>
+                      <h3>{e.title}</h3>
+                      <p className="sub">{formatDateTime(e.date)} · {e.venue}, {e.city}</p>
+                      <p className="sub">{e.description}</p>
+                      <span className="chip">{e.category}</span>
+                      {e.demo && <span className="chip chip-demo">Demo event</span>}
+                      {pct >= 80 && e.available > 0 && <span className="chip chip-hot">Selling fast</span>}
+                      {e.available === 0 && <span className="chip chip-sold">Sold out</span>}
+                    </div>
+                    <div className="occ-col">
+                      <OccupancyBar sold={e.sold} total={e.totalSeats} />
+                      <span className="muted" style={{ fontSize: '.85rem' }}>{e.available} of {e.totalSeats} seats left</span>
+                    </div>
+                    <div className="fee">{inr(Math.min(...e.zones.map((z) => z.price)))}<span>from</span></div>
+                    <button type="button" className="btn btn-primary btn-sm" onClick={() => go('event', e.id)}>
+                      {e.available === 0 ? 'Join waitlist' : 'View seats →'}
+                    </button>
+                  </article>
+                );
+              })}
+            </div>
           </div>
         )}
       </div>
@@ -702,6 +790,8 @@ function EventDetail({ user, go, eventId, showToast, socketRef }) {
   }
 
   const soldOut = seatData ? seatData.available === 0 : event.available === 0;
+  const total = seatData ? seatData.total : event.totalSeats;
+  const sold = total - (seatData ? seatData.available : event.available);
 
   return (
     <section aria-labelledby="event-title">
@@ -715,29 +805,34 @@ function EventDetail({ user, go, eventId, showToast, socketRef }) {
           {event.demo ? ' · Demo event (fictional)' : ''}
         </p>
         <p style={{ maxWidth: '70ch' }}>{event.description}</p>
-        <div className="zone-strip" aria-label="Zone pricing">
-          {event.zones.map((z) => (
-            <span key={z.name}><strong>{z.name}</strong> {inr(z.price)}</span>
-          ))}
-          <span><strong>Availability</strong> {seatData ? `${seatData.available} of ${seatData.total} seats left` : `${event.available} of ${event.totalSeats} left`}</span>
-        </div>
-
         {error && <p className="alert" role="alert">{error}</p>}
 
         {soldOut && !hold && !confirmed ? (
           <div className="soldout-box">
-            <h2 style={{ fontSize: '1.6rem' }}>Sold out — <em>join the waitlist.</em></h2>
+            <h2 style={{ fontSize: '1.6rem' }}>Sold out — <span className="h1-accent">join the waitlist.</span></h2>
             <p className="muted">Every seat is taken. Join the waitlist and we notify you live if someone cancels.</p>
             <button type="button" className="btn btn-primary" disabled={waitlistBusy} onClick={joinWaitlist}>
               {waitlistBusy ? 'Joining…' : 'Join waitlist'}
             </button>
           </div>
         ) : (
-          <>
-            <div className="seatmap-panel">
-              <SeatMap event={event} seats={seatData?.seats || []} selected={selected} onToggle={toggleSeat} interactive={!hold} />
-            </div>
-            <div className="booking-bar" aria-live="polite">
+          <div className="detail-split">
+            <div className="detail-sticky">
+              <div className="scorebug-panel" role="status" aria-label={`Tickets sold ${sold} of ${total}`}>
+                <span className="live-bug"><span className="live-dot" aria-hidden="true" /> Live</span>
+                <span className="score-num" style={{ marginTop: 12 }}>{sold}<span style={{ color: '#c7d0e8', fontSize: '0.55em' }}> / {total}</span></span>
+                <span className="score-label">Tickets sold</span>
+                <div style={{ marginTop: 14 }}>
+                  <OccupancyBar sold={sold} total={total} />
+                </div>
+              </div>
+              <div className="zone-strip" aria-label="Zone pricing">
+                {event.zones.map((z) => (
+                  <span key={z.name}><strong>{z.name}</strong> {inr(z.price)}</span>
+                ))}
+                <span><strong>Availability</strong> {seatData ? `${seatData.available} of ${seatData.total} seats left` : `${event.available} of ${event.totalSeats} left`}</span>
+              </div>
+              <div className="booking-bar" aria-live="polite">
               {hold ? (
                 <>
                   <HoldCountdown
@@ -778,8 +873,14 @@ function EventDetail({ user, go, eventId, showToast, socketRef }) {
                   </div>
                 </>
               )}
+              </div>
             </div>
-          </>
+            <div className="detail-main">
+              <div className="seatmap-panel">
+                <SeatMap event={event} seats={seatData?.seats || []} selected={selected} onToggle={toggleSeat} interactive={!hold} />
+              </div>
+            </div>
+          </div>
         )}
 
         {showCheckout && hold && (
@@ -877,7 +978,7 @@ function MyTickets({ user, go, showToast }) {
       <div className="wrap">
         <p className="eyebrow"><span className="num">(01)</span> Attendee records</p>
         <h1 id="mine-title" style={{ fontSize: 'clamp(2.2rem, 5vw, 3.6rem)' }}>
-          My tickets <em>&amp; bookings.</em>
+          My tickets <span className="h1-accent">&amp; bookings.</span>
         </h1>
         <div className="filters">
           <button type="button" className={`btn btn-sm ${filter === 'active' ? 'btn-dark' : 'btn-ghost'}`} onClick={() => setFilter('active')}>
@@ -1033,7 +1134,7 @@ function OrganizerDashboard({ user, showToast }) {
       <div className="wrap">
         <p className="eyebrow"><span className="num">(01)</span> Organizer dashboard</p>
         <h1 id="org-title" style={{ fontSize: 'clamp(2.2rem, 5vw, 3.6rem)' }}>
-          Your events, <em>live.</em>
+          Your events, <span className="h1-accent">live.</span>
         </h1>
         <p className="lede" style={{ marginTop: 14 }}>
           Create events with tiered zone pricing, watch sales as they happen, and check tickets in by code.
@@ -1314,7 +1415,7 @@ function AdminView({ showToast }) {
       <div className="wrap">
         <p className="eyebrow"><span className="num">(01)</span> Admin analytics</p>
         <h1 id="admin-title" style={{ fontSize: 'clamp(2.2rem, 5vw, 3.6rem)' }}>
-          The platform, <em>in numbers.</em>
+          The platform, <span className="h1-accent">in numbers.</span>
         </h1>
         <p className="lede" style={{ marginTop: 14 }}>
           Computed live from real bookings in the database — including the seeded demo bookings.
@@ -1455,7 +1556,7 @@ function AuthView({ onSignedIn, showToast }) {
             </form>
           </div>
           <div className="auth-panel">
-            <p className="eyebrow" style={{ color: '#bef264' }}><span className="num">(02)</span> Try it instantly</p>
+            <p className="eyebrow" style={{ color: '#ffd60a' }}><span className="num">(02)</span> Try it instantly</p>
             <h2>Demo accounts</h2>
             <p className="muted">One click signs you in — no typing. Demo data only.</p>
             <ul className="demo-list">

@@ -57,8 +57,14 @@ export default function SeatMap({ event, seats, selected = [], onToggle, interac
         role="group"
         aria-label={`Seat map for ${event.title}. ${seats?.filter((s) => s.state === 'available').length ?? 0} seats available.`}
       >
+        <defs>
+          <pattern id="stage-stripes" width="18" height="18" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+            <rect width="18" height="18" fill="#0d1530" />
+            <rect width="9" height="18" fill="#e10600" />
+          </pattern>
+        </defs>
         <g>
-          <rect x={LABEL_W} y={8} width={width - LABEL_W - 16} height={30} rx={4} className="stage" />
+          <rect x={LABEL_W} y={8} width={width - LABEL_W - 16} height={30} rx={8} fill="url(#stage-stripes)" stroke="#101828" strokeWidth="2" />
           <text x={width / 2 + LABEL_W / 2} y={28} textAnchor="middle" className="stage-label">
             STAGE
           </text>
@@ -104,7 +110,7 @@ export default function SeatMap({ event, seats, selected = [], onToggle, interac
                     if (!interactive) {
                       return (
                         <g key={seat.id} {...common}>
-                          <rect x={x} y={row.y} width={SEAT} height={SEAT} rx={6} />
+                          <rect x={x} y={row.y} width={SEAT} height={SEAT} rx={8} />
                           <title>{label}</title>
                         </g>
                       );
@@ -125,7 +131,7 @@ export default function SeatMap({ event, seats, selected = [], onToggle, interac
                           }
                         }}
                       >
-                        <rect x={x} y={row.y} width={SEAT} height={SEAT} rx={6} />
+                        <rect x={x} y={row.y} width={SEAT} height={SEAT} rx={8} />
                         <title>{label}</title>
                       </g>
                     );
