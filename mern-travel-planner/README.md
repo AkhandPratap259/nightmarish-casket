@@ -26,7 +26,7 @@ The core is a real domain rule, not plain CRUD: interval-overlap detection enfor
 
 ## Design
 
-Editorial x Creative Split: warm ivory, deep charcoal, one electric-blue accent used only for meaning. Oversized Space Grotesk headlines with one italic Instrument Serif phrase per headline, numbered section labels, ruled trip rows (no card grid), a horizontal timeline rail with day scrubber, a dark trip-hero split with a live budget burn-down, and an asymmetric budget/packing split. Cursor effect is a small glowing ring only, with a fading trail and click ripples. Reduced-motion is honoured throughout.
+Redesigned 2026-11-22 under the permanent design-variety rules. Design DNA: Swiss grid (strict grid, red and black, tight sans) as the primary theme with Memphis pop (squiggles, confetti shapes, bright clashing colours) as the secondary influence — colour and mood from Swiss grid, surface, texture and shape language from Memphis. Layout is an infinite canvas with pan and zoom (MIXUP project: the itinerary is a pannable, zoomable canvas that opens into an orbit/radial day view, with a radial menu fanning out from the selected day). Type is Space Grotesk + JetBrains Mono. The generative canvas background is driven by the trip's real data: the sun's filled arc is the budget burn-down (or the share of upcoming trips on the dashboard), the route runs through the real destinations or days, and the skyline bars are the real per-day costs. View changes use an ink-bleed reveal from the click point; all motion follows a snappy spring. Hard offset shadows, paper grain, halftone dots and code-drawn Memphis shapes throughout. Reduced-motion is honoured throughout.
 
 ## Run locally
 
