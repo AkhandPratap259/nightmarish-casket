@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api, formatMinutes } from '../api';
+import RecipeArt from '../components/RecipeArt';
 import { CUISINES, CATEGORIES, DIFFICULTIES } from '../data/content';
 
 export default function Browse() {
@@ -98,19 +99,22 @@ export default function Browse() {
       </p>
       {error && <p className="error-text" role="alert">{error}</p>}
 
-      <ol className="ruled-list browse-list">
-        {recipes.map((r, i) => (
-          <li key={r._id} className="ruled-row">
-            <span className="ruled-index" aria-hidden="true">{String((page - 1) * 12 + i + 1).padStart(2, '0')}</span>
-            <div className="ruled-main">
-              <Link className="ruled-title" to={`/recipes/${r._id}`}>{r.title}</Link>
-              <p className="muted small">{r.cuisine} · {r.category} · {r.difficulty} · {formatMinutes(r.prepTimeMin + r.cookTimeMin)} · serves {r.servings}</p>
-              <p className="ruled-desc">{r.description}</p>
-            </div>
-            <span className="ruled-meta">★ {(r.ratingAvg || 0).toFixed(1)} ({r.ratingCount || 0}) · cooked {r.timesCooked || 0}×</span>
-          </li>
+      <div className="recipe-grid stack-in">
+        {recipes.map((r) => (
+          <Link key={r._id} className="recipe-card" to={`/recipes/${r._id}`}>
+            <RecipeArt cuisine={r.cuisine} title={r.title} />
+            <span className="deck-body">
+              <span className="deck-title">{r.title}</span>
+              <span className="deck-meta">{r.cuisine} · {r.category} · {r.difficulty} · {formatMinutes(r.prepTimeMin + r.cookTimeMin)} · serves {r.servings}</span>
+              <span className="ruled-desc">{r.description}</span>
+              <span className="deck-foot">
+                <span className="deck-rating">★ {(r.ratingAvg || 0).toFixed(1)} ({r.ratingCount || 0}) · cooked {r.timesCooked || 0}×</span>
+                <span className="deck-tag">{r.cuisine}</span>
+              </span>
+            </span>
+          </Link>
         ))}
-      </ol>
+      </div>
       {!loading && recipes.length === 0 && !error && (
         <p className="muted">No recipes match those filters yet. Try clearing a filter.</p>
       )}

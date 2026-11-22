@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, NavLink, Route, Routes, useNavigate } from 'react-router-dom';
 import { getStoredUser, setStoredUser, setToken, userIdOf } from './api';
 import { disconnectSocket, getSocket } from './socket';
-import Cursor from './components/Cursor';
+import ParticleField from './components/ParticleField';
 import Home from './pages/Home';
 import Auth from './pages/Auth';
 import Browse from './pages/Browse';
@@ -61,13 +61,14 @@ export default function App() {
 
   return (
     <div className="app">
-      <Cursor />
+      <ParticleField />
       <a className="skip-link" href="#main-content">
         Skip to main content
       </a>
       <header className="nav">
         <ScrollProgress />
         <Link className="nav-logo" to="/" onClick={closeMenu}>
+          <span className="nav-logo-mark" aria-hidden="true">❦</span>
           Flavor<span className="nav-logo-accent">Forge</span>
         </Link>
         <button

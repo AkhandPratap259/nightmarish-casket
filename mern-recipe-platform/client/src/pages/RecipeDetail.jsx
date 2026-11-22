@@ -10,8 +10,8 @@ function ProgressRing({ value, size = 120 }) {
   const offset = c * (1 - Math.min(1, Math.max(0, value)));
   return (
     <svg className="progress-ring" width={size} height={size} viewBox="0 0 120 120" role="img" aria-label={`Cooking progress ${Math.round(value * 100)} percent`}>
-      <circle cx="60" cy="60" r={r} fill="none" stroke="#ddd2c2" strokeWidth="8" />
-      <circle cx="60" cy="60" r={r} fill="none" stroke="#e8501a" strokeWidth="8" strokeLinecap="round" strokeDasharray={c} strokeDashoffset={offset} transform="rotate(-90 60 60)" />
+      <circle cx="60" cy="60" r={r} fill="none" stroke="#ede2c9" strokeWidth="8" />
+      <circle cx="60" cy="60" r={r} fill="none" stroke="#c4552d" strokeWidth="8" strokeLinecap="round" strokeDasharray={c} strokeDashoffset={offset} transform="rotate(-90 60 60)" />
       <text x="60" y="66" textAnchor="middle" className="progress-ring-text">{Math.round(value * 100)}%</text>
     </svg>
   );

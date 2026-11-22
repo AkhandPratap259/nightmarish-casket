@@ -25,7 +25,11 @@ export default function CountUp({ value, suffix = '' }) {
         const start = performance.now();
         const tick = (now) => {
           const p = Math.min(1, (now - start) / 900);
-          setShown(Math.round(target * (1 - Math.pow(1 - p, 3))));
+          // Playful-bounce ease (easeOutBack): overshoots the target slightly.
+          const c1 = 1.70158;
+          const c3 = c1 + 1;
+          const eased = 1 + c3 * Math.pow(p - 1, 3) + c1 * Math.pow(p - 1, 2);
+          setShown(Math.round(target * eased));
           if (p < 1) raf = requestAnimationFrame(tick);
         };
         raf = requestAnimationFrame(tick);

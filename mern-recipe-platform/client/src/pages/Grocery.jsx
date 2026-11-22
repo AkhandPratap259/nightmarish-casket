@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api, addDaysStr, dayLabel, weekStartStr } from '../api';
+import GroceryVisual from '../components/GroceryVisual';
 
 export default function Grocery({ user }) {
   const [weekStart, setWeekStart] = useState(() => weekStartStr());
@@ -77,6 +78,10 @@ export default function Grocery({ user }) {
       {status && <p className="muted small" role="status" aria-live="polite">{status}</p>}
       {error && <p className="error-text" role="alert">{error}</p>}
       {loading && <p role="status">Building your list…</p>}
+
+      {!loading && items.length > 0 && (
+        <GroceryVisual items={items} />
+      )}
 
       {!loading && items.length > 0 && (
         <div className="grocery-progress" aria-label={`Shopping progress: ${checked} of ${items.length} items checked`}>

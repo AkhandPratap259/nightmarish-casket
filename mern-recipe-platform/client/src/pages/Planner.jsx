@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api, addDaysStr, dayLabel, weekStartStr } from '../api';
 import { SLOTS } from '../data/content';
@@ -15,6 +15,19 @@ export default function Planner({ user }) {
   const [selectedRecipe, setSelectedRecipe] = useState(null);
   const [slotDialog, setSlotDialog] = useState(null); // {date, slot, entry?}
   const [dialogServings, setDialogServings] = useState(4);
+  const [deckDay, setDeckDay] = useState(0);
+  const touchX = useRef(null);
+
+  function onDeckTouchStart(e) {
+    touchX.current = e.changedTouches[0].clientX;
+  }
+  function onDeckTouchEnd(e) {
+    if (touchX.current == null) return;
+    const dx = e.changedTouches[0].clientX - touchX.current;
+    touchX.current = null;
+    if (dx < -48) setDeckDay((d) => Math.min(6, d + 1));
+    else if (dx > 48) setDeckDay((d) => Math.max(0, d - 1));
+  }
 
   const weekEnd = addDaysStr(weekStart, 6);
   const days = Array.from({ length: 7 }, (_, i) => addDaysStr(weekStart, i));
@@ -186,6 +199,67 @@ export default function Planner({ user }) {
               })}
             </div>
           ))}
+        </div>
+      </div>
+
+      {/* Card-deck view (B15 accent layout): one day per card, swipe or tap
+          through the week. Shown on small screens; the grid above is desktop. */}
+      <div className="planner-deck" aria-label="Week plan, one day at a time">
+        <div
+          className="planner-deck-card"
+          key={days[deckDay]}
+          onTouchStart={onDeckTouchStart}
+          onTouchEnd={onDeckTouchEnd}
+        >
+          <p className="section-label">Day {deckDay + 1} of 7 — swipe to change day</p>
+          <h2>{dayLabel(days[deckDay])}</h2>
+          <p className="muted small">Tap a slot to add, change servings or remove a meal.</p>
+          <ul className="planner-deck-slots">
+            {SLOTS.map((slot) => {
+              const entry = entryFor(days[deckDay], slot.value);
+              return (
+                <li key={slot.value}>
+                  <button
+                    type="button"
+                    className={`planner-deck-slot ${entry ? 'planner-deck-slot--filled' : ''}`}
+                    aria-label={`${dayLabel(days[deckDay])} ${slot.label}${entry ? `: ${entry.recipe?.title}, ${entry.servings} servings` : ': empty'}`}
+                    onClick={() => {
+                      if (selectedRecipe && !entry) {
+                        assignRecipe(days[deckDay], slot.value, selectedRecipe, 4);
+                        setSelectedRecipe(null);
+                      } else {
+                        openSlot(days[deckDay], slot.value);
+                      }
+                    }}
+                  >
+                    <span className="planner-deck-slot-label">{slot.label}</span>
+                    {entry ? (
+                      <span><strong>{entry.recipe?.title || 'Recipe'}</strong> <span className="muted small">· {entry.servings} servings</span></span>
+                    ) : (
+                      <span className="planner-empty">+ Add a meal</span>
+                    )}
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+        <div className="planner-deck-nav">
+          <button type="button" className="btn btn-ghost" disabled={deckDay === 0} onClick={() => setDeckDay((d) => Math.max(0, d - 1))} aria-label="Previous day">← Prev day</button>
+          <span className="planner-deck-dots" role="tablist" aria-label="Choose a day">
+            {days.map((d, i) => (
+              <button
+                key={d}
+                type="button"
+                role="tab"
+                aria-selected={deckDay === i}
+                aria-label={dayLabel(d)}
+                className={`planner-deck-dot ${deckDay === i ? 'planner-deck-dot--active' : ''}`}
+                onClick={() => setDeckDay(i)}
+              />
+            ))}
+          </span>
+          <button type="button" className="btn btn-ghost" disabled={deckDay === 6} onClick={() => setDeckDay((d) => Math.min(6, d + 1))} aria-label="Next day">Next day →</button>
         </div>
       </div>
 

@@ -48,9 +48,12 @@ step with a per-step timer and a progress ring.
 - Backend: Node.js, Express, Mongoose, JWT auth, Socket.io,
   mongodb-memory-server (in-memory fallback when no `MONGO_URI` is set)
 - Frontend: React 18 + Vite, react-router-dom, socket.io-client, plain CSS
-- Design: Editorial x Creative Split — warm ivory, deep charcoal, vivid
-  orange accent, Space Grotesk display type with one italic serif phrase per
-  headline, Inter body
+- Design: Organic nature (earth tones, blob shapes, grain) with an Editorial
+  ivory-and-ink secondary (hairline rules, paper texture); command-centre
+  panels with a card-deck stack and swipe; Bricolage Grotesque display type
+  with IBM Plex Sans body; pointer-reactive particle field, scroll-scrubbed
+  SVG cooking-journey path, slide-stack page transitions, playful-bounce
+  motion throughout
 
 ## Demo accounts
 
