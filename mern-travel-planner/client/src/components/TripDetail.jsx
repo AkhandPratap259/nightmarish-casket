@@ -2,7 +2,6 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   api,
   formatDate,
-  formatDateShort,
   inr,
   ACTIVITY_CATEGORIES,
   EXPENSE_CATEGORIES,
@@ -10,6 +9,7 @@ import {
 } from '../api.js';
 import { COVER_LABELS } from '../data/config.js';
 import Dialog from './Dialog.jsx';
+import OrbitCanvas from './OrbitCanvas.jsx';
 import PackingRing from './PackingRing.jsx';
 import { getSocket } from '../App.jsx';
 
@@ -111,7 +111,7 @@ function ActivityForm({ tripId, dayIndex, initial, onClose, onSaved }) {
   );
 }
 
-export default function TripDetail({ tripId, onBack, onChanged, currentUser }) {
+export default function TripDetail({ tripId, onBack, onChanged, currentUser, onCanvasData }) {
   const [data, setData] = useState(null);
   const [analytics, setAnalytics] = useState(null);
   const [error, setError] = useState('');
@@ -127,6 +127,7 @@ export default function TripDetail({ tripId, onBack, onChanged, currentUser }) {
   const [inviteStatus, setInviteStatus] = useState('');
   const [packingLabel, setPackingLabel] = useState('');
   const [packingCategory, setPackingCategory] = useState('other');
+  const packingInputRef = useRef(null);
   const dragId = useRef(null);
 
   const load = useCallback(async () => {
@@ -143,6 +144,21 @@ export default function TripDetail({ tripId, onBack, onChanged, currentUser }) {
   useEffect(() => {
     load();
   }, [load]);
+
+  // Feed the generative canvas background (D17) the trip's real data:
+  // budget burn-down, days and per-day costs. Cleared when leaving the trip.
+  useEffect(() => {
+    if (onCanvasData && data && analytics) {
+      onCanvasData({ trip: data.trip, days: data.days, summary: data.summary, analytics });
+    }
+  }, [data, analytics, onCanvasData]);
+
+  useEffect(
+    () => () => {
+      if (onCanvasData) onCanvasData(null);
+    },
+    [onCanvasData]
+  );
 
   // Live updates: join the trip room and refetch when a collaborator changes it.
   useEffect(() => {
@@ -184,14 +200,20 @@ export default function TripDetail({ tripId, onBack, onChanged, currentUser }) {
     return (
       <main id="main" className="trip-detail">
         <button type="button" className="btn btn-ghost" onClick={onBack}>← Back to trips</button>
-        <p className="form-error" role="alert">{error}</p>
+        <div className="error-panel" role="alert">
+          <strong>Could not open this trip</strong>
+          {error}
+        </div>
       </main>
     );
   }
   if (!data) {
     return (
       <main id="main" className="trip-detail">
-        <p>Loading trip…</p>
+        <div className="loading" style={{ minHeight: '60vh' }}>
+          <div className="loader-squares" aria-hidden="true"><span /><span /><span /></div>
+          <p>Loading trip…</p>
+        </div>
       </main>
     );
   }
@@ -286,8 +308,8 @@ export default function TripDetail({ tripId, onBack, onChanged, currentUser }) {
       <section className={`trip-hero cover-${trip.coverStyle}`} aria-label="Trip overview">
         <div className="trip-hero-text">
           <p className="label label-light">(01) — {COVER_LABELS[trip.coverStyle]} TRIP · {trip.status.toUpperCase()}</p>
-          <h1>
-            {trip.title} <em>— {trip.destination}</em>
+          <h1 aria-label={`${trip.title} — ${trip.destination}`}>
+            {trip.title} <span className="word-red">— {trip.destination}</span>
           </h1>
           <p className="trip-hero-meta">
             {formatDate(trip.startDate)} — {formatDate(trip.endDate)} · {trip.dayCount} days · {trip.travellers} traveller{trip.travellers === 1 ? '' : 's'}
@@ -312,26 +334,27 @@ export default function TripDetail({ tripId, onBack, onChanged, currentUser }) {
       <section className="timeline-section" aria-label="Trip timeline">
         <div className="section-head">
           <h2><span className="section-num">(02)</span> Timeline</h2>
-          <p className="section-note">Pick a day. Drag activities to reorder them.</p>
+          <p className="section-note">Pan and zoom the canvas. Tap a day to open its menu.</p>
         </div>
-        <div className="timeline-rail" role="tablist" aria-label="Days of this trip">
-          {days.map((d) => (
-            <button
-              key={d.index}
-              type="button"
-              role="tab"
-              aria-selected={d.index === day.index}
-              className={`timeline-day ${d.index === day.index ? 'is-active' : ''}`}
-              onClick={() => setDayIndex(d.index)}
-            >
-              <span className="timeline-day-num">Day {d.index + 1}</span>
-              <span className="timeline-day-date">{formatDateShort(d.date)}</span>
-              <span className="timeline-day-count">{d.activities.length} activit{d.activities.length === 1 ? 'y' : 'ies'}</span>
-            </button>
-          ))}
-        </div>
+        <OrbitCanvas
+          trip={trip}
+          days={days}
+          selectedIndex={day.index}
+          onSelectDay={(i) => setDayIndex(i)}
+          onAddActivity={() => setShowActivity('new')}
+          onLogExpense={() => setShowExpense(true)}
+          onAddPacking={() => {
+            if (packingInputRef.current) {
+              packingInputRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              packingInputRef.current.focus();
+            }
+          }}
+          onInvite={() => setShowInvite(true)}
+          canEdit={canEdit}
+          isOwner={isOwner}
+        />
 
-        <div className="day-panel">
+        <div className="day-panel ink-day" key={day.index}>
           <div className="day-panel-head">
             <h3>Day {day.index + 1} — {formatDate(day.date)}</h3>
             {canEdit ? (
@@ -454,7 +477,7 @@ export default function TripDetail({ tripId, onBack, onChanged, currentUser }) {
                 <div key={cat} className="category-bar-row">
                   <span>{categoryLabel(cat)}</span>
                   <span className="category-bar-track">
-                    <span className="category-bar-fill" style={{ width: `${Math.round((amount / Math.max(1, analytics.totalSpent)) * 100)}%` }} />
+                    <span className={`category-bar-fill cat-${cat}`} style={{ width: `${Math.round((amount / Math.max(1, analytics.totalSpent)) * 100)}%` }} />
                   </span>
                   <span>{inr(amount)}</span>
                 </div>
@@ -488,7 +511,7 @@ export default function TripDetail({ tripId, onBack, onChanged, currentUser }) {
             <form className="inline-form" onSubmit={addPacking}>
               <label className="field">
                 <span className="visually-hidden">New packing item</span>
-                <input value={packingLabel} onChange={(e) => setPackingLabel(e.target.value)} placeholder="Add an item…" aria-label="New packing item" />
+                <input ref={packingInputRef} value={packingLabel} onChange={(e) => setPackingLabel(e.target.value)} placeholder="Add an item…" aria-label="New packing item" />
               </label>
               <label className="field">
                 <span className="visually-hidden">Category</span>

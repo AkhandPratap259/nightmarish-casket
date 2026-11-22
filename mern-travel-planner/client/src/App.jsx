@@ -4,6 +4,7 @@ import { api, setToken, formatDate, formatDateShort, inr, TRIP_STATUSES, COVER_S
 import { config, COVER_LABELS } from './data/config.js';
 import Cursor from './components/Cursor.jsx';
 import Dialog from './components/Dialog.jsx';
+import GenCanvas from './components/GenCanvas.jsx';
 import TripDetail from './components/TripDetail.jsx';
 
 let socket = null;
@@ -171,13 +172,18 @@ function AuthView({ onAuth }) {
   }
 
   return (
-    <main className="auth-page">
+    <>
+      <GenCanvas trips={[]} />
+      <main className="auth-page">
       <section className="auth-split">
         <div className="auth-copy">
           <p className="label">(01) — TRAVEL, PLANNED PROPERLY</p>
-          <h1>
-            Plan the trip, <em>not the spreadsheet.</em>
+          <h1 aria-label="Plan the trip, not the spreadsheet.">
+            Plan the trip, <span className="word-red">not the spreadsheet.</span>
           </h1>
+          <svg className="auth-squiggle" width="220" height="18" viewBox="0 0 220 18" aria-hidden="true">
+            <path d="M2 9 Q 14 1 26 9 T 50 9 T 74 9 T 98 9 T 122 9 T 146 9 T 170 9 T 194 9 T 218 9" fill="none" stroke="#e30613" strokeWidth="4" />
+          </svg>
           <p className="lede">
             Voyara turns a trip into a day-by-day plan: timed activities that cannot clash,
             a live budget that warns before it breaks, a packing list that fills itself,
@@ -242,6 +248,7 @@ function AuthView({ onAuth }) {
         <span>Voyara — a demo travel planner. No real bookings or payments.</span>
       </footer>
     </main>
+    </>
   );
 }
 
@@ -255,6 +262,17 @@ export default function App() {
   const [sort, setSort] = useState('departure');
   const [showNew, setShowNew] = useState(false);
   const [status, setStatus] = useState('');
+  const [canvasData, setCanvasData] = useState(null);
+  // E9 ink bleed: view changes reveal from the click point.
+  const [bleed, setBleed] = useState({ x: 0, y: 0, key: 0 });
+
+  function goTo(next, e) {
+    const x = e && typeof e.clientX === 'number' ? e.clientX : window.innerWidth / 2;
+    const y = e && typeof e.clientY === 'number' ? e.clientY : window.innerHeight / 2;
+    setBleed((b) => ({ x, y, key: b.key + 1 }));
+    setCanvasData(null);
+    setView(next);
+  }
 
   const loadTrips = useCallback(async () => {
     const params = {};
@@ -311,6 +329,7 @@ export default function App() {
   if (checking) {
     return (
       <div className="loading">
+        <div className="loader-squares" aria-hidden="true"><span /><span /><span /></div>
         <p>Loading Voyara…</p>
       </div>
     );
@@ -325,13 +344,17 @@ export default function App() {
   return (
     <div className="app">
       <a className="skip-link" href="#main">Skip to main content</a>
+      <GenCanvas trips={trips} tripData={canvasData} />
       <Cursor />
+      {bleed.key > 0 ? (
+        <div key={`flash-${bleed.key}`} className="ink-flash" style={{ left: bleed.x, top: bleed.y }} aria-hidden="true" />
+      ) : null}
       <header className="topbar">
-        <button type="button" className="brand" onClick={() => setView({ name: 'dashboard' })}>
+        <button type="button" className="brand" onClick={(e) => goTo({ name: 'dashboard' }, e)}>
           Voyara<span className="brand-dot">.</span>
         </button>
         <nav aria-label="Main">
-          <button type="button" className="nav-link" onClick={() => setView({ name: 'dashboard' })}>My trips</button>
+          <button type="button" className="nav-link" onClick={(e) => goTo({ name: 'dashboard' }, e)}>My trips</button>
           <button type="button" className="nav-link" onClick={() => setShowNew(true)}>+ New trip</button>
         </nav>
         <div className="topbar-user">
@@ -340,21 +363,29 @@ export default function App() {
         </div>
       </header>
 
+      <div key={bleed.key} className="ink-reveal" style={{ '--bx': `${bleed.x}px`, '--by': `${bleed.y}px` }}>
       {view.name === 'trip' ? (
         <TripDetail
           tripId={view.id}
-          onBack={() => setView({ name: 'dashboard' })}
+          onBack={(e) => goTo({ name: 'dashboard' }, e)}
           onChanged={loadTrips}
           currentUser={user}
+          onCanvasData={setCanvasData}
         />
       ) : (
         <main id="main" className="dashboard">
           <section className="hero">
             <div className="hero-copy">
               <p className="label">(01) — YOUR TRIPS</p>
-              <h1>
-                Every journey, <em>on one page.</em>
+              <h1 aria-label="Every journey, on one page.">
+                Every journey, <span className="word-red">on one page.</span>
               </h1>
+              <svg className="hero-confetti" width="120" height="90" viewBox="0 0 120 90" style={{ right: 24, top: 20 }} aria-hidden="true">
+                <path d="M8 14 L 30 4 L 52 16" fill="none" stroke="#2b5cff" strokeWidth="5" />
+                <circle cx="92" cy="18" r="10" fill="#ffd400" stroke="#111110" strokeWidth="3" />
+                <path d="M14 62 L 34 62 L 24 80 Z" fill="#ff5ca8" stroke="#111110" strokeWidth="3" />
+                <path d="M70 60 q 8 -8 16 0 t 16 0 t 16 0" fill="none" stroke="#e30613" strokeWidth="4" />
+              </svg>
               <p className="lede">
                 {trips.length === 0
                   ? 'No trips yet — create your first one and Voyara builds the day-by-day plan for you.'
@@ -374,7 +405,7 @@ export default function App() {
                     {formatDate(upcoming.startDate)} — {formatDate(upcoming.endDate)} · {upcoming.dayCount} days
                   </p>
                   <p className="hero-budget">Budget {inr(upcoming.budget)} · {upcoming.travellers} traveller{upcoming.travellers === 1 ? '' : 's'}</p>
-                  <button type="button" className="btn btn-light" onClick={() => setView({ name: 'trip', id: upcoming.id })}>
+                  <button type="button" className="btn btn-light" onClick={(e) => goTo({ name: 'trip', id: upcoming.id }, e)}>
                     Open this trip →
                   </button>
                 </>
@@ -433,7 +464,7 @@ export default function App() {
               <ul className="trip-rows">
                 {trips.map((t, i) => (
                   <li key={t.id} className="trip-row">
-                    <button type="button" className="trip-row-main" onClick={() => setView({ name: 'trip', id: t.id })}>
+                    <button type="button" className="trip-row-main" onClick={(e) => goTo({ name: 'trip', id: t.id }, e)}>
                       <span className={`cover-band cover-${t.coverStyle}`} aria-hidden="true">
                         {String(i + 1).padStart(2, '0')}
                       </span>
@@ -464,6 +495,7 @@ export default function App() {
           </footer>
         </main>
       )}
+      </div>
 
       {showNew ? (
         <Dialog title="Plan a new trip" onClose={() => setShowNew(false)}>
@@ -472,7 +504,7 @@ export default function App() {
             onCreated={(trip) => {
               setShowNew(false);
               loadTrips();
-              setView({ name: 'trip', id: trip.id });
+              goTo({ name: 'trip', id: trip.id });
             }}
           />
         </Dialog>

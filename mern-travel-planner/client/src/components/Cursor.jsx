@@ -1,12 +1,10 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 
-// Small glowing ring only — no large glow orb behind the cursor.
-// Subtle replacements: a fading trail dot and click ripples.
+// Swiss red square cursor — a small outlined square with a black centre dot
+// that rotates 45 degrees over interactive elements and fills on press.
+// No glow, no trail. Hidden on touch devices and with reduced motion.
 export default function Cursor() {
-  const ringRef = useRef(null);
-  const [trails, setTrails] = useState([]);
-  const [ripples, setRipples] = useState([]);
-  const lastTrail = useRef(0);
+  const squareRef = useRef(null);
 
   useEffect(() => {
     if (window.matchMedia('(hover: none)').matches) return undefined;
@@ -20,30 +18,26 @@ export default function Cursor() {
     const onMove = (e) => {
       x = e.clientX;
       y = e.clientY;
-      const now = performance.now();
-      if (now - lastTrail.current > 90) {
-        lastTrail.current = now;
-        const id = now;
-        setTrails((t) => [...t.slice(-6), { id, x, y }]);
-        window.setTimeout(() => setTrails((t) => t.filter((p) => p.id !== id)), 520);
-      }
+      const target = e.target;
+      const interactive =
+        target && target.closest
+          ? target.closest('button, a, input, select, textarea, [role="tab"], [draggable="true"]')
+          : null;
+      if (squareRef.current) squareRef.current.classList.toggle('is-hover', Boolean(interactive));
     };
-    const onDown = (e) => {
+    const onDown = () => {
       down = true;
-      const id = performance.now();
-      setRipples((r) => [...r, { id, x: e.clientX, y: e.clientY }]);
-      window.setTimeout(() => setRipples((r) => r.filter((p) => p.id !== id)), 480);
     };
     const onUp = () => {
       down = false;
     };
     const loop = () => {
-      rx += (x - rx) * 0.35;
-      ry += (y - ry) * 0.35;
-      if (ringRef.current) {
-        ringRef.current.style.left = `${rx}px`;
-        ringRef.current.style.top = `${ry}px`;
-        ringRef.current.classList.toggle('is-down', down);
+      rx += (x - rx) * 0.4;
+      ry += (y - ry) * 0.4;
+      if (squareRef.current) {
+        squareRef.current.style.left = `${rx}px`;
+        squareRef.current.style.top = `${ry}px`;
+        squareRef.current.classList.toggle('is-down', down);
       }
       raf = requestAnimationFrame(loop);
     };
@@ -59,15 +53,5 @@ export default function Cursor() {
     };
   }, []);
 
-  return (
-    <>
-      <div ref={ringRef} className="cursor-ring" aria-hidden="true" />
-      {trails.map((t) => (
-        <span key={t.id} className="cursor-trail" style={{ left: t.x, top: t.y }} aria-hidden="true" />
-      ))}
-      {ripples.map((r) => (
-        <span key={r.id} className="cursor-ripple" style={{ left: r.x, top: r.y }} aria-hidden="true" />
-      ))}
-    </>
-  );
+  return <div ref={squareRef} className="cursor-square" aria-hidden="true" />;
 }
