@@ -60,8 +60,8 @@ export default function Admin({ user }) {
 
   return (
     <main className="page">
-      <p className="section-label">(01) Admin overview</p>
-      <h1 className="page-title">
+      <p className="section-label">Admin overview</p>
+      <h1 className="page-title" aria-label="The whole marketplace, at a glance.">
         The whole marketplace, <em>at a glance.</em>
       </h1>
       {error && <p className="form-error" role="alert">{error}</p>}
@@ -80,18 +80,25 @@ export default function Admin({ user }) {
           </section>
 
           <div className="dashboard-grid">
-            <section aria-labelledby="status-heading">
+            <section className="dashboard-panel" aria-labelledby="status-heading">
               <h2 id="status-heading" className="section-title-small">Bookings by status</h2>
-              <ul className="ruled-list">
+              <ul className="mini-bars">
                 {Object.entries(overview.byStatus).map(([status, count]) => (
                   <li key={status}>
                     <span>{STATUS_LABELS[status] || status}</span>
                     <strong>{count}</strong>
+                    <span className="mini-bar" aria-hidden="true">
+                      <i
+                        style={{
+                          width: `${(count / Math.max(1, ...Object.values(overview.byStatus))) * 100}%`,
+                        }}
+                      />
+                    </span>
                   </li>
                 ))}
               </ul>
             </section>
-            <section aria-labelledby="top-heading">
+            <section className="dashboard-panel" aria-labelledby="top-heading">
               <h2 id="top-heading" className="section-title-small">Top providers by revenue</h2>
               <ul className="ruled-list">
                 {overview.topProviders.map((p) => (

@@ -97,8 +97,8 @@ export default function MyBookings({ user }) {
 
   return (
     <main className="page">
-      <p className="section-label">(01) {isCustomer ? 'Your bookings' : 'Your jobs'}</p>
-      <h1 className="page-title">
+      <p className="section-label">{isCustomer ? 'Your bookings' : 'Your jobs'}</p>
+      <h1 className="page-title" aria-label={isCustomer ? 'Track every booking' : 'Track every job'}>
         {isCustomer ? (
           <>Track every <em>booking</em></>
         ) : (

@@ -141,10 +141,10 @@ export default function OfferingDetail({ user }) {
 
   return (
     <main className="page">
-      <p className="section-label">(01) {service.category}</p>
+      <p className="section-label">{service.category}</p>
       <div className="detail-split">
         <div className="detail-main">
-          <h1 className="page-title">
+          <h1 className="page-title" aria-label={`${service.name} by ${provider.name}`}>
             {service.name} <em>by {provider.name}</em>
           </h1>
           <p className="page-sub">{service.description}</p>
@@ -198,7 +198,7 @@ export default function OfferingDetail({ user }) {
           </section>
         </div>
 
-        <aside className="detail-side">
+        <aside className="detail-side tape tape--sage">
           <MatchScoreBar score={offering.matchScore} parts={offering.matchParts} />
           <p className="muted match-note">
             Rating {offering.providerStats?.rating} · {offering.providerStats?.reviewCount} reviews ·

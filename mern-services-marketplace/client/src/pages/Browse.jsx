@@ -47,8 +47,8 @@ export default function Browse({ user }) {
 
   return (
     <main className="page">
-      <p className="section-label">(01) Browse services</p>
-      <h1 className="page-title">
+      <p className="section-label">Browse services</p>
+      <h1 className="page-title" aria-label="Ranked by match, not by who paid.">
         Ranked by <em>match,</em> not by who paid.
       </h1>
       <p className="page-sub">
@@ -103,10 +103,41 @@ export default function Browse({ user }) {
         </p>
       )}
 
+      {!loading && !error && offerings.length > 0 && (
+        <section className="panel panel--tape rank-board tape tape--indigo" aria-label="Top matches on this board">
+          <div className="panel-head">
+            <h2 className="section-title-small">Top matches on this board</h2>
+            <span className="muted small">Live scores — bars move when the ranking changes</span>
+          </div>
+          <ul className="rank-board-list">
+            {[...offerings]
+              .sort((a, b) => b.matchScore - a.matchScore)
+              .slice(0, 5)
+              .map((o, i) => (
+                <li key={o._id} className="rank-board-row">
+                  <span className="rank-num" aria-hidden="true">{i + 1}</span>
+                  <span className="rank-who">
+                    <strong>{o.service?.name}</strong>
+                    <span>{o.provider?.name} · {formatINR(o.price)}</span>
+                  </span>
+                  <span className="rank-score">{o.matchScore}</span>
+                  <span
+                    className="rank-bar"
+                    role="img"
+                    aria-label={`Match score ${o.matchScore} out of 100 for ${o.service?.name} by ${o.provider?.name}`}
+                  >
+                    <i style={{ width: `${o.matchScore}%` }} />
+                  </span>
+                </li>
+              ))}
+          </ul>
+        </section>
+      )}
+
       <ul className="offering-list">
         {offerings.map((o, i) => (
           <Reveal key={o._id} delay={Math.min(i, 5) * 40}>
-            <li className="offering-row tilt">
+            <li className="offering-row">
               <Link className="offering-main" to={`/offerings/${o._id}`}>
                 <span className="offering-icon" aria-hidden="true">
                   {SERVICE_ICONS[o.service?.icon] || '⚒'}

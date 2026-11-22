@@ -88,11 +88,16 @@ export default function ProviderDashboard({ user }) {
   const todaysJobs = bookings.filter(
     (b) => b.date === today && ['accepted', 'in_progress'].includes(b.status)
   );
+  const statusCounts = Object.keys(STATUS_LABELS).map((s) => ({
+    status: s,
+    count: bookings.filter((b) => b.status === s).length,
+  }));
+  const maxStatusCount = Math.max(1, ...statusCounts.map((s) => s.count));
 
   return (
     <main className="page">
-      <p className="section-label">(01) Provider dashboard</p>
-      <h1 className="page-title">
+      <p className="section-label">Provider dashboard</p>
+      <h1 className="page-title" aria-label="Your work, one place.">
         Your work, <em>one place.</em>
       </h1>
       {notice && <p className="live-notice" role="status" aria-live="polite">{notice}</p>}
@@ -108,8 +113,26 @@ export default function ProviderDashboard({ user }) {
         </section>
       )}
 
+      <section className="panel panel--tape tape tape--indigo" aria-labelledby="status-bars-heading">
+        <div className="panel-head">
+          <h2 id="status-bars-heading" className="section-title-small">Jobs by status</h2>
+          <span className="muted small">Live counts from your bookings</span>
+        </div>
+        <ul className="mini-bars">
+          {statusCounts.map(({ status, count }) => (
+            <li key={status}>
+              <span>{STATUS_LABELS[status] || status}</span>
+              <strong>{count}</strong>
+              <span className="mini-bar" aria-hidden="true">
+                <i style={{ width: `${(count / maxStatusCount) * 100}%` }} />
+              </span>
+            </li>
+          ))}
+        </ul>
+      </section>
+
       <div className="dashboard-grid">
-        <section aria-labelledby="incoming-heading">
+        <section className="dashboard-panel" aria-labelledby="incoming-heading">
           <Reveal>
             <h2 id="incoming-heading" className="section-title-small">Incoming requests ({incoming.length})</h2>
           </Reveal>
@@ -140,7 +163,7 @@ export default function ProviderDashboard({ user }) {
           </ul>
         </section>
 
-        <section aria-labelledby="today-heading">
+        <section className="dashboard-panel" aria-labelledby="today-heading">
           <Reveal>
             <h2 id="today-heading" className="section-title-small">Today&apos;s schedule ({todaysJobs.length})</h2>
           </Reveal>

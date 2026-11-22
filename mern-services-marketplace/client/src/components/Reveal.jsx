@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 
-// Reveal-on-scroll wrapper. The element stays full-size and only a curtain
-// overlay animates away, so content is never hidden if the observer fails
-// or animations are disabled.
+// Reveal-on-scroll wrapper, E7 blur dissolve: the element is always
+// visible — only a paper-coloured overlay dissolves away (blur + fade),
+// so content is never hidden if the observer fails or animations are off.
 export default function Reveal({ children, className = '', delay = 0 }) {
   const ref = useRef(null);
   const [visible, setVisible] = useState(false);

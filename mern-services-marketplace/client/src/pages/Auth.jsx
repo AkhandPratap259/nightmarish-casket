@@ -47,8 +47,8 @@ export default function Auth({ mode, onAuth }) {
 
   return (
     <main className="page auth-page">
-      <p className="section-label">(01) {isLogin ? 'Welcome back' : 'Join TaskTrove'}</p>
-      <h1 className="page-title">
+      <p className="section-label">{isLogin ? 'Welcome back' : 'Join TaskTrove'}</p>
+      <h1 className="page-title" aria-label={isLogin ? 'Sign in to book a service' : 'Create your account'}>
         {isLogin ? (
           <>Sign in to <em>book</em> a service</>
         ) : (
@@ -57,6 +57,7 @@ export default function Auth({ mode, onAuth }) {
       </h1>
 
       <div className="auth-split">
+        <div className="auth-form-panel">
         <form className="form" onSubmit={submit} noValidate>
           {!isLogin && (
             <>
@@ -129,10 +130,11 @@ export default function Auth({ mode, onAuth }) {
             )}
           </p>
         </form>
+        </div>
 
         <aside className="demo-panel" aria-label="Demo accounts">
-          <p className="section-label">(02) Try it now</p>
-          <h2 className="demo-title">
+          <p className="section-label">Try it now</p>
+          <h2 className="demo-title" aria-label="Demo accounts, no sign-up needed">
             Demo accounts, <em>no sign-up</em> needed
           </h2>
           <p className="muted">

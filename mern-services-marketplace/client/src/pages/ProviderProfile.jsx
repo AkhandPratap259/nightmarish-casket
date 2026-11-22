@@ -40,7 +40,7 @@ export default function ProviderProfile() {
 
   return (
     <main className="page">
-      <p className="section-label">(01) Provider profile</p>
+      <p className="section-label">Provider profile</p>
       <div className="detail-split">
         <div className="detail-main">
           <div className="profile-head">
@@ -99,7 +99,7 @@ export default function ProviderProfile() {
             ))}
           </ul>
         </div>
-        <aside className="detail-side">
+        <aside className="detail-side tape tape--vermilion">
           <div className="profile-score-card">
             <p className="section-label">Why book this provider</p>
             <p>

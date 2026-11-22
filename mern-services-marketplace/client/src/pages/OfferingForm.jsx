@@ -84,8 +84,8 @@ export default function OfferingForm({ user }) {
 
   return (
     <main className="page">
-      <p className="section-label">(01) {isEdit ? 'Edit offering' : 'New offering'}</p>
-      <h1 className="page-title">
+      <p className="section-label">{isEdit ? 'Edit offering' : 'New offering'}</p>
+      <h1 className="page-title" aria-label={isEdit ? 'Change your offering' : 'List a service you offer'}>
         {isEdit ? (
           <>Change your <em>offering</em></>
         ) : (
@@ -93,7 +93,7 @@ export default function OfferingForm({ user }) {
         )}
       </h1>
       {loading && <p className="muted" role="status">Loading…</p>}
-      <form className="form form-narrow" onSubmit={submit} noValidate>
+      <form className="form form-narrow auth-form-panel" onSubmit={submit} noValidate>
         <label className="field">
           <span>Service</span>
           <select

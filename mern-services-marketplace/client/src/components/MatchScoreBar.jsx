@@ -1,7 +1,17 @@
 import { useEffect, useRef, useState } from 'react';
 
-// Animated match-score bar. The bar fills on mount (or instantly when
-// reduced motion is preferred) and the parts break down on hover/focus.
+// Animated match-score bar — a torn-paper strip with segment ticks for
+// the five formula parts. The fill springs to the live score (or sets
+// instantly when reduced motion is preferred) and the breakdown shows a
+// mini bar per part, all from the real match data.
+const PART_MAX = { rating: 30, completedJobs: 20, responseRate: 20, price: 20, area: 10 };
+const PART_LABELS = [
+  ['rating', 'Rating'],
+  ['completedJobs', 'Completed jobs'],
+  ['responseRate', 'Response rate'],
+  ['price', 'Price vs median'],
+  ['area', 'Serves your area'],
+];
 export default function MatchScoreBar({ score, parts, compact = false }) {
   const [width, setWidth] = useState(0);
   const [open, setOpen] = useState(false);
@@ -48,11 +58,19 @@ export default function MatchScoreBar({ score, parts, compact = false }) {
       )}
       {parts && open && (
         <ul className="match-parts">
-          <li><span>Rating</span><strong>{parts.rating} / 30</strong></li>
-          <li><span>Completed jobs</span><strong>{parts.completedJobs} / 20</strong></li>
-          <li><span>Response rate</span><strong>{parts.responseRate} / 20</strong></li>
-          <li><span>Price vs median</span><strong>{parts.price} / 20</strong></li>
-          <li><span>Serves your area</span><strong>{parts.area} / 10</strong></li>
+          {PART_LABELS.map(([key, label]) => {
+            const value = parts[key] ?? 0;
+            const max = PART_MAX[key];
+            return (
+              <li key={key}>
+                <span>{label}</span>
+                <strong>{value} / {max}</strong>
+                <span className="part-bar" aria-hidden="true">
+                  <i style={{ width: `${Math.min(100, (value / max) * 100)}%` }} />
+                </span>
+              </li>
+            );
+          })}
         </ul>
       )}
     </div>

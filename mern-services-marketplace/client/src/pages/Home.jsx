@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { api, formatINR } from '../api';
 import { CATEGORIES, MATCH_FORMULA } from '../data/content';
 import Reveal from '../components/Reveal';
+import ProviderCarousel from '../components/ProviderCarousel';
 
 export default function Home({ user }) {
   const [services, setServices] = useState([]);
@@ -33,7 +34,7 @@ export default function Home({ user }) {
     <main className="page">
       <section className="hero">
         <div className="hero-left">
-          <p className="section-label">(01) Local services, Azamgarh</p>
+          <p className="section-label">Local services, Azamgarh</p>
           <h1 className="hero-title" aria-label="Book trusted local services, ranked by a score you can see.">
             Book trusted local services, ranked by a <em>score you can see.</em>
           </h1>
@@ -71,12 +72,19 @@ export default function Home({ user }) {
                   <span className="muted">{o.provider?.name} · {formatINR(o.price)}</span>
                 </span>
                 <span className="hero-top-score">{o.matchScore}</span>
+                <span className="hero-rank-bar" aria-hidden="true">
+                  <i style={{ width: `${o.matchScore}%` }} />
+                </span>
                 <Link className="hero-top-link" to={`/offerings/${o._id}`}>
-                  View
+                  View →
                 </Link>
               </li>
             ))}
-            {top.length === 0 && !error && <li className="muted">Loading top matches…</li>}
+            {top.length === 0 && !error && (
+              <li className="muted">
+                <span className="loading-strip">Loading top matches</span>
+              </li>
+            )}
           </ul>
           <p className="hero-right-caption">
             Scores come from live ratings, completed jobs, response rate, price and area — never
@@ -87,8 +95,8 @@ export default function Home({ user }) {
 
       <section className="section">
         <Reveal>
-          <p className="section-label">(02) Services</p>
-          <h2 className="section-title">
+          <p className="section-label">Services</p>
+          <h2 className="section-title" aria-label="What do you need done today?">
             What do you need <em>done today?</em>
           </h2>
         </Reveal>
@@ -111,8 +119,8 @@ export default function Home({ user }) {
 
       <section className="section section-dark">
         <Reveal>
-          <p className="section-label section-label--light">(03) How the match score works</p>
-          <h2 className="section-title section-title--light">
+          <p className="section-label section-label--light">How the match score works</p>
+          <h2 className="section-title section-title--light" aria-label="The ranking is explained, not hidden.">
             The ranking is <em>explained,</em> not hidden.
           </h2>
           <p className="section-sub section-sub--light">
@@ -138,34 +146,22 @@ export default function Home({ user }) {
 
       <section className="section">
         <Reveal>
-          <p className="section-label">(04) Providers</p>
-          <h2 className="section-title">
+          <p className="section-label">Providers</p>
+          <h2 className="section-title" aria-label="People your neighbours already trust.">
             People your neighbours <em>already trust.</em>
           </h2>
         </Reveal>
-        <ul className="provider-strip">
-          {providers.map((p) => (
-            <li key={p._id} className="provider-card tilt">
-              <span className="avatar" style={{ backgroundColor: p.avatarColor }} aria-hidden="true">
-                {p.name.charAt(0)}
-              </span>
-              <strong>{p.name}</strong>
-              <span className="muted">{p.city} · {p.yearsExperience} yrs experience</span>
-              <span className="provider-stats">
-                ★ {p.stats?.rating ?? '—'} ({p.stats?.reviewCount ?? 0} reviews) · {p.stats?.completedJobs ?? 0} jobs done
-              </span>
-              <Link className="btn btn-ghost btn-small" to={`/providers/${p._id}`}>
-                View profile
-              </Link>
-            </li>
-          ))}
-        </ul>
+        {providers.length > 0 ? (
+          <ProviderCarousel providers={providers} />
+        ) : (
+          <p className="muted"><span className="loading-strip">Loading providers</span></p>
+        )}
       </section>
 
       <section className="section section-cta">
         <Reveal>
-          <p className="section-label">(05) How a booking works</p>
-          <h2 className="section-title">
+          <p className="section-label">How a booking works</p>
+          <h2 className="section-title" aria-label="Pick a slot. Get a fixed price. Track the job.">
             Pick a slot. Get a <em>fixed price.</em> Track the job.
           </h2>
           <ol className="steps">

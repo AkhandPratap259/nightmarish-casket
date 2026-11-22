@@ -67,8 +67,12 @@ illustrative of the pricing rules, not real charges.
 - **Backend:** Node.js, Express, Mongoose, JWT (bcryptjs), Socket.io,
   mongodb-memory-server (in-memory fallback for local development).
 - **Frontend:** React 18 + Vite, react-router-dom, socket.io-client, plain CSS.
-- **Design:** Editorial x Creative Split — warm ivory, deep charcoal, one vivid
-  orange accent; Space Grotesk display, Instrument Serif italic emphasis, Inter body.
+- **Design (redesigned 2026-11-22):** Paper collage + Ink and washi — warm paper, torn
+  edges, washi tape, vermilion hanko seals; Cormorant Garamond display, Outfit body.
+  Sidebar workspace with a resizable pane whose main pane is a command-centre of booking
+  panels; provider cards spin in a CSS 3D carousel; torn-paper service snapshots trail
+  the mouse; match-score ranking bars are drawn from live match data; every route change
+  dissolves in with a blur and a snappy spring.
 
 ## Demo accounts
 
