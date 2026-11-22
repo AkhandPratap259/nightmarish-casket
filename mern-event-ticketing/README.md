@@ -21,7 +21,7 @@ A MERN event discovery and ticketing platform. Attendees browse events by catego
 
 ## Design
 
-Editorial x Creative Split: warm ivory, deep charcoal, one acid-lime accent used only for meaning. Oversized Space Grotesk headlines with one italic Instrument Serif phrase per headline, numbered section labels, ruled event rows (no card grid), a hard light/dark split hero with a coded seat-map preview, animated occupancy bars, and a live booking ticker. Cursor effect is a small glowing ring only, with a fading trail and click ripples. Reduced-motion is honoured throughout.
+Redesign (2026-11-22, N=11) — **Broadcast sport × Clay 3D**: a navy scoreboard, signal red and broadcast yellow with diagonal stripes, set on warm cream with chunky clay-rounded panels, soft layered shadows and pastel tints. Bebas Neue display type with Karla body. Event discovery runs on a **timeline spine** with date nodes; the hero and event detail use a **split screen with one sticky half**. The seat map is presented as a broadcast scoreboard — a live tickets-sold counter as a score bug, a per-event sold chart drawn from real data, and the 5-minute hold countdown kept prominent (turning urgent under 60 seconds). **Ctrl/⌘ K** opens a command palette to jump to any event or page; filtering and sorting reorder the list with FLIP animations. Route changes open with a split-panel wipe; all motion is precise minimal (short durations, one sharp easing). Reduced motion is honoured throughout.
 
 ## Run locally
 
