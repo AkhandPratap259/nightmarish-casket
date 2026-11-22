@@ -134,7 +134,7 @@ export default function Browse({ onGo }) {
         <ol className={`ruled-list browse-list${animating ? ' is-animating' : ''}`}>
           {data.campaigns.map((c, i) => (
             <li key={c._id} className="ruled-row browse-row">
-              <button type="button" className="browse-btn" onClick={() => onGo({ name: 'campaign', id: c._id })}>
+              <button type="button" className="browse-btn spot-card" onClick={() => onGo({ name: 'campaign', id: c._id })}>
                 <span className="row-index" aria-hidden="true">{String((page - 1) * 10 + i + 1).padStart(2, '0')}</span>
                 <CampaignArt title={c.title} category={c.category} size="small" />
                 <span className="browse-main">

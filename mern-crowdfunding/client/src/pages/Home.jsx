@@ -3,6 +3,24 @@ import { api } from '../api';
 import { config, HOW_IT_WORKS, HOME_COPY, formatINR, categoryLabel, STATUS_LABELS } from '../data/config';
 import FundingBar from '../components/FundingBar';
 import CampaignArt from '../components/CampaignArt';
+import Parallax from '../components/Parallax';
+
+// Y2K chrome bubbles + stars drifting at three parallax depths (D9).
+const BUBBLES = [
+  { left: '6%', top: '12%', size: 92, speed: 0.45, depth: 'far' },
+  { left: '38%', top: '68%', size: 54, speed: 0.3, depth: 'far' },
+  { left: '78%', top: '8%', size: 64, speed: 0.55, depth: 'far' },
+  { left: '88%', top: '62%', size: 110, speed: 0.18, depth: 'near' },
+  { left: '18%', top: '78%', size: 44, speed: 0.5, depth: 'near' },
+  { left: '58%', top: '18%', size: 36, speed: 0.35, depth: 'mid' },
+];
+const STARS = [
+  { left: '12%', top: '30%', speed: 0.5 },
+  { left: '48%', top: '8%', speed: 0.35 },
+  { left: '70%', top: '44%', speed: 0.6 },
+  { left: '30%', top: '52%', speed: 0.25 },
+  { left: '92%', top: '30%', speed: 0.45 },
+];
 
 export default function Home({ user, onGo, onRequireAuth }) {
   const [featured, setFeatured] = useState([]);
@@ -40,6 +58,18 @@ export default function Home({ user, onGo, onRequireAuth }) {
   return (
     <div className="home">
       <section className="hero" aria-labelledby="hero-heading">
+        <div className="hero-bubbles" aria-hidden="true">
+          {BUBBLES.map((b, i) => (
+            <Parallax key={`b${i}`} speed={b.speed} style={{ position: 'absolute', inset: 0 }}>
+              <span className="hero-bubble" style={{ left: b.left, top: b.top, width: b.size, height: b.size }} />
+            </Parallax>
+          ))}
+          {STARS.map((s, i) => (
+            <Parallax key={`s${i}`} speed={s.speed} style={{ position: 'absolute', inset: 0 }}>
+              <span className="hero-star" style={{ left: s.left, top: s.top }}>✦</span>
+            </Parallax>
+          ))}
+        </div>
         <div className="hero-left">
           <p className="section-label">{HOME_COPY.heroEyebrow}</p>
           <h1 id="hero-heading">
@@ -57,21 +87,23 @@ export default function Home({ user, onGo, onRequireAuth }) {
           <p className="hint-text">Mock payments only — no real money moves on {config.name}.</p>
         </div>
         <div className="hero-right" aria-label="Illustrative preview: funding thermometer">
-          <p className="thermo-label">Illustrative preview</p>
-          <div className="thermometer">
-            <div className="thermo-track" aria-hidden="true">
-              <div className="thermo-fill" style={{ height: `${samplePct}%` }} />
+          <div className="thermo-card spot-card">
+            <p className="thermo-label">Illustrative preview</p>
+            <div className="thermometer">
+              <div className="thermo-track" aria-hidden="true">
+                <div className="thermo-fill" style={{ height: `${samplePct}%` }} />
+              </div>
+              <div className="thermo-body">
+                <p className="thermo-title">{sample.title}</p>
+                <p className="thermo-big">{samplePct}%</p>
+                <p className="thermo-sub">
+                  {formatINR(sample.pledged)} raised of {formatINR(sample.goal)} · {sample.backers} backers
+                </p>
+                <FundingBar pledged={sample.pledged} goal={sample.goal} showLabels={false} />
+              </div>
             </div>
-            <div className="thermo-body">
-              <p className="thermo-title">{sample.title}</p>
-              <p className="thermo-big">{samplePct}%</p>
-              <p className="thermo-sub">
-                {formatINR(sample.pledged)} raised of {formatINR(sample.goal)} · {sample.backers} backers
-              </p>
-              <FundingBar pledged={sample.pledged} goal={sample.goal} showLabels={false} />
-            </div>
+            <p className="thermo-note">Sample figures shown for illustration — live campaigns are listed below.</p>
           </div>
-          <p className="thermo-note">Sample figures shown for illustration — live campaigns are listed below.</p>
         </div>
       </section>
 
@@ -80,10 +112,10 @@ export default function Home({ user, onGo, onRequireAuth }) {
           <p className="section-label">How it works</p>
           <h2 id="how-heading">Three steps, <em>out in the open.</em></h2>
         </div>
-        <ol className="ruled-list how-list">
+        <ol className="timeline-spine how-list">
           {HOW_IT_WORKS.map((step) => (
-            <li key={step.n} className="ruled-row how-row">
-              <span className="row-index" aria-hidden="true">{step.n}</span>
+            <li key={step.n} className="tl-item">
+              <span className="tl-dot" aria-hidden="true">{step.n}</span>
               <div>
                 <h3>{step.title}</h3>
                 <p>{step.body}</p>
@@ -102,7 +134,7 @@ export default function Home({ user, onGo, onRequireAuth }) {
           </button>
         </div>
         {loading ? (
-          <p className="empty-note">Loading featured campaigns…</p>
+          <p className="empty-note"><span className="loading-bubble">Loading featured campaigns…</span></p>
         ) : error ? (
           <p className="form-error" role="alert">{error}</p>
         ) : featured.length === 0 ? (
@@ -110,9 +142,13 @@ export default function Home({ user, onGo, onRequireAuth }) {
             No live campaigns yet. Be the first to start one.
           </p>
         ) : (
-          <ol className="ruled-list featured-list">
+          <ol className="featured-list">
             {featured.map((c, i) => (
-              <li key={c._id} className="ruled-row featured-row">
+              <li
+                key={c._id}
+                className="stack-card spot-card"
+                style={{ top: `calc(var(--nav-h) + 16px + ${i * 28}px)` }}
+              >
                 <button type="button" className="featured-btn" onClick={() => onGo({ name: 'campaign', id: c._id })}>
                   <span className="row-index" aria-hidden="true">{String(i + 1).padStart(2, '0')}</span>
                   <CampaignArt title={c.title} category={c.category} size="small" />

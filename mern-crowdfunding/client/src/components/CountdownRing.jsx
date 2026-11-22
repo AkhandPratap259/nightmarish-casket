@@ -41,18 +41,26 @@ export default function CountdownRing({ endsAt, size = 148 }) {
   return (
     <div className="countdown-ring" style={{ width: size, height: size }} role="timer" aria-label={`${left.days} days, ${left.hours} hours, ${left.mins} minutes left`}>
       <svg width={size} height={size} viewBox="0 0 148 148" aria-hidden="true">
-        <circle cx="74" cy="74" r={radius} fill="none" stroke="#3a372f" strokeWidth="8" />
+        <defs>
+          <linearGradient id="chrome-ring" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stopColor="#ff5ea8" />
+            <stop offset="55%" stopColor="#c40e6e" />
+            <stop offset="100%" stopColor="#5b4bc4" />
+          </linearGradient>
+        </defs>
+        <circle cx="74" cy="74" r={radius} fill="none" stroke="#e3def2" strokeWidth="8" />
         <circle
           cx="74"
           cy="74"
           r={radius}
           fill="none"
-          stroke="#ea580c"
+          stroke="url(#chrome-ring)"
           strokeWidth="8"
-          strokeLinecap="butt"
+          strokeLinecap="round"
           strokeDasharray={circ}
           strokeDashoffset={offset}
           transform="rotate(-90 74 74)"
+          style={{ transition: 'stroke-dashoffset 1s cubic-bezier(0.22, 1, 0.36, 1)' }}
         />
       </svg>
       <div className="countdown-centre">

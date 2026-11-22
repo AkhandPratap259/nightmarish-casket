@@ -6,6 +6,7 @@ import FundingBar from '../components/FundingBar';
 import CountdownRing from '../components/CountdownRing';
 import PledgeSlider from '../components/PledgeSlider';
 import CampaignArt from '../components/CampaignArt';
+import Parallax from '../components/Parallax';
 import Dialog from '../components/Dialog';
 
 function useAnimatedNumber(value) {
@@ -309,7 +310,9 @@ export default function CampaignDetail({ campaignId, hint, user, onGo, onRequire
             {campaign.creator?.email ? ` (${campaign.creator.email})` : ''}
           </p>
         </div>
-        <CampaignArt title={campaign.title} category={campaign.category} size="large" />
+        <Parallax speed={0.2}>
+          <CampaignArt title={campaign.title} category={campaign.category} size="large" />
+        </Parallax>
       </div>
 
       <div className="detail-split">
@@ -332,13 +335,17 @@ export default function CampaignDetail({ campaignId, hint, user, onGo, onRequire
               </div>
             </div>
             {(campaign.stretchGoals || []).length ? (
-              <ul className="stretch-list">
-                {campaign.stretchGoals.map((g, i) => (
-                  <li key={g.title ? `${g.title}-${i}` : i} className={(campaign.pledgedTotal || 0) >= Number(g.amount) ? 'is-reached' : ''}>
-                    <span aria-hidden="true">{(campaign.pledgedTotal || 0) >= Number(g.amount) ? '✓' : '○'}</span>
-                    {' '}{g.title} — {formatINR(g.amount)}
-                  </li>
-                ))}
+              <ul className="timeline-spine">
+                {campaign.stretchGoals.map((g, i) => {
+                  const reached = (campaign.pledgedTotal || 0) >= Number(g.amount);
+                  return (
+                    <li key={g.title ? `${g.title}-${i}` : i} className={`tl-item${reached ? ' is-reached' : ''}`}>
+                      <span className="tl-dot" aria-hidden="true">{reached ? '' : '○'}</span>
+                      <h3>{g.title}</h3>
+                      <p>{formatINR(g.amount)}{reached ? ' — reached' : ''}</p>
+                    </li>
+                  );
+                })}
               </ul>
             ) : null}
           </section>
@@ -353,9 +360,10 @@ export default function CampaignDetail({ campaignId, hint, user, onGo, onRequire
             {(data.updates || []).length === 0 ? (
               <p className="empty-note">No updates yet.</p>
             ) : (
-              <ol className="ruled-list">
+              <ol className="timeline-spine">
                 {data.updates.map((u, i) => (
-                  <li key={u._id || i} className="ruled-row update-row">
+                  <li key={u._id || i} className="tl-item update-row">
+                    <span className="tl-dot" aria-hidden="true">✦</span>
                     <h3>{u.title}</h3>
                     <p>{u.body}</p>
                     <p className="hint-text">{u.createdAt ? new Date(u.createdAt).toLocaleDateString('en-IN') : ''}</p>
@@ -424,7 +432,7 @@ export default function CampaignDetail({ campaignId, hint, user, onGo, onRequire
           </section>
         </div>
 
-        <aside className="detail-side" aria-label="Pledge">
+        <aside className="detail-side spot-card" aria-label="Pledge">
           <CountdownRing endsAt={campaign.endsAt} />
           {/* No separate "days left" line: the ring already states the
               whole days remaining. A second line used the server's

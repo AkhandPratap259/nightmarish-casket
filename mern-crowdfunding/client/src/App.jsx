@@ -20,7 +20,15 @@ export default function App() {
   const [authMode, setAuthMode] = useState('login');
   const [menuOpen, setMenuOpen] = useState(false);
   const [pledgeTick, setPledgeTick] = useState(0);
+  const [curtain, setCurtain] = useState('idle'); // idle | closing | opening
+  const curtainTimers = useRef([]);
   const toastId = useRef(0);
+
+  // Clear curtain timers on unmount.
+  useEffect(() => {
+    const timers = curtainTimers.current;
+    return () => timers.forEach((t) => window.clearTimeout(t));
+  }, []);
 
   const notify = useCallback((message, kind = 'info') => {
     const id = ++toastId.current;
@@ -28,11 +36,31 @@ export default function App() {
     window.setTimeout(() => setToasts((t) => t.filter((x) => x.id !== id)), 6000);
   }, []);
 
+  // Route change with an E1 curtain wipe (fluid liquid). The view swaps
+  // while the curtain covers the screen, then the curtain wipes away.
+  // Under prefers-reduced-motion the switch is instant, no curtain.
   const go = useCallback((next) => {
-    setView(next);
     setMenuOpen(false);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }, []);
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      setView(next);
+      window.scrollTo({ top: 0 });
+      return;
+    }
+    if (curtain !== 'idle') {
+      setView(next);
+      window.scrollTo({ top: 0 });
+      return;
+    }
+    setCurtain('closing');
+    curtainTimers.current.push(
+      window.setTimeout(() => {
+        setView(next);
+        window.scrollTo({ top: 0 });
+        setCurtain('opening');
+        curtainTimers.current.push(window.setTimeout(() => setCurtain('idle'), 580));
+      }, 470)
+    );
+  }, [curtain]);
 
   // Validate the stored session on load; drop it if the server rejects it.
   useEffect(() => {
@@ -228,6 +256,12 @@ export default function App() {
           <Auth mode={authMode} onAuth={handleAuth} onGo={go} />
         </Dialog>
       ) : null}
+
+      <div className={`curtain${curtain === 'closing' ? ' is-closing' : curtain === 'opening' ? ' is-opening' : ''}`} aria-hidden="true">
+        <div className="curtain-panel curtain-panel-b" />
+        <div className="curtain-panel curtain-panel-a" />
+        <span className="curtain-mark">FundForge ✦</span>
+      </div>
 
       <div className="toasts" aria-live="polite" aria-atomic="false">
         {toasts.map((t) => (

@@ -21,9 +21,9 @@ FundForge is a full-stack crowdfunding platform. Creators launch funding campaig
 
 ## Theme and interactions
 
-Editorial x Creative Split: warm ivory, deep charcoal, muted grey text and one accent — vivid orange — used only for meaning (section numbers, active states, the emphasised word, primary actions). Space Grotesk headlines with one italic serif phrase, Inter body, oversized type-led headings, thin rules and numbered section labels.
+Y2K chrome (A13) with an Aurora glass (A3) secondary — Design DNA drawn for the 2026-11-22 redesign: metallic chrome gradients, floating bubbles and four-point stars over a soft moving aurora field, frosted-glass panels, DM Serif Display headlines with DM Sans body. Primary layout: sticky stacking chrome cards; accent layout: timeline spine for milestones and updates. Primary interaction: multi-layer parallax (hero bubbles and campaign art drift at different depths); secondary: cursor spotlight / lens reveal that sheens across chrome cards. Route changes use a curtain wipe; all motion follows the fluid-liquid personality. Signature moment: campaigns stack as chrome cards with parallax depth while the cursor spotlight reveals their funding details, and live funding bars animate as pledges arrive.
 
-Interactive upgrades: animated funding bars with stretch-goal markers, a pledge amount slider with live reward preview, a live countdown ring to each campaign's deadline, animated counter numbers, hover tilt on campaign art, a live pledge feed over Socket.io and a funding "thermometer" on the home page. Animations respect `prefers-reduced-motion` and never hide content. The cursor effect is a small glowing ring only — no large glow orb.
+Interactive upgrades: animated chrome funding bars with star stretch-goal markers, a pledge amount slider with live reward preview, a live countdown ring to each campaign's deadline, animated counter numbers, hover tilt on campaign art, a live pledge feed over Socket.io and a funding "thermometer" on the home page. Animations respect `prefers-reduced-motion` and never hide content. On touch devices pointer effects are replaced by tap feedback.
 
 ## API overview
 
