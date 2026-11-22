@@ -8,12 +8,20 @@ export default function XpRing({ value, max, size = 120, label, sublabel }) {
   return (
     <div className="xp-ring" role="img" aria-label={`${label}: ${value} of ${max}`}>
       <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} aria-hidden="true">
+        <defs>
+          <linearGradient id="xpRingGrad" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stopColor="#ff2e88" />
+            <stop offset="55%" stopColor="#ff7a18" />
+            <stop offset="100%" stopColor="#22e6ff" />
+          </linearGradient>
+        </defs>
         <circle cx={size / 2} cy={size / 2} r={radius} className="xp-ring-track" strokeWidth={stroke} fill="none" />
         <circle
           cx={size / 2}
           cy={size / 2}
           r={radius}
           className="xp-ring-fill"
+          stroke="url(#xpRingGrad)"
           strokeWidth={stroke}
           fill="none"
           strokeDasharray={circumference}

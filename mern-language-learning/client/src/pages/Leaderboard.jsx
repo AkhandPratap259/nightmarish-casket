@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { api } from '../api';
+import Scramble from '../components/Scramble';
 
 // Weekly leaderboard with live updates: when the server broadcasts a
 // leaderboard change, rows re-sort and the changed row flashes.
@@ -43,7 +44,7 @@ export default function Leaderboard({ user, boardTick }) {
     <div className="page">
       <p className="section-label">(LEADERBOARD) LIVE</p>
       <h1>
-        This week’s <em>top learners.</em>
+        This week’s <em><Scramble text="top learners." /></em>
       </h1>
       <p className="page-sub">
         Weekly XP is counted from real lesson and review activity in the last 7 days.
@@ -79,7 +80,7 @@ export default function Leaderboard({ user, boardTick }) {
                 {row.name}
                 {isMe ? ' (you)' : ''}
               </span>
-              <span className="board-meta">Level {row.level} · 🔥 {row.streak}</span>
+              <span className="board-meta">Level {row.level} · {row.streak}-day streak</span>
               <span className="board-xp">{row.weeklyXp} XP</span>
             </li>
           );

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { api } from '../api';
+import Scramble from '../components/Scramble';
 
 function shuffled(arr, seed) {
   const out = [...arr];
@@ -98,7 +99,7 @@ export default function Review({ onFinished, notify }) {
       <div className="page">
         <p className="section-label">(REVIEW) {session.index + 1} OF {session.items.length}</p>
         <h1>
-          What does <em>“{item.word}”</em> mean?
+          What does <em>“<Scramble key={item.word} text={item.word} />”</em> mean?
         </h1>
         <p className="page-sub">Due from your lessons · interval {item.intervalDays} day{item.intervalDays > 1 ? 's' : ''}</p>
         <div className="options-list" role="group" aria-label="Answer options">
@@ -157,7 +158,7 @@ export default function Review({ onFinished, notify }) {
     <div className="page">
       <p className="section-label">(REVIEW) SPACED REPETITION</p>
       <h1>
-        Words you missed, <em>right on time.</em>
+        Words you missed, <em><Scramble text="right on time." /></em>
       </h1>
       <p className="page-sub">
         Every word you get wrong in a lesson lands here. Answer it right and the interval doubles

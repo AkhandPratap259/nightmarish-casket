@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { api, xpIntoLevel } from '../api';
 import { DAILY_GOAL_XP, ACHIEVEMENT_INFO } from '../data/config';
+import Scramble from '../components/Scramble';
 import XpRing from '../components/XpRing';
 
 export default function Dashboard({ user, onGo, onRequireAuth }) {
@@ -60,11 +61,17 @@ export default function Dashboard({ user, onGo, onRequireAuth }) {
       <h1>
         {user.streak > 0 ? (
           <>
-            <span className="streak-flame" aria-hidden="true">🔥</span> {user.streak}-day streak. <em>Keep it burning.</em>
+            <svg className="streak-flame" width="34" height="34" viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M13.5.67s.74 2.65.74 4.8c0 2.06-1.35 3.73-3.41 3.73-2.07 0-3.63-1.67-3.63-3.73l.03-.36C5.21 7.51 4 10.62 4 14c0 4.42 3.58 8 8 8s8-3.58 8-8C20 8.61 17.41 3.8 13.5.67zM11.71 19c-1.78 0-3.22-1.4-3.22-3.14 0-1.62 1.05-2.76 2.81-3.12 1.77-.36 3.6-1.21 4.62-2.58.39 1.29.59 2.65.59 4.04 0 2.65-2.15 4.8-4.8 4.8z"
+                fill="#ffb000"
+              />
+            </svg>{' '}
+            {user.streak}-day streak. <em><Scramble text="Keep it burning." /></em>
           </>
         ) : (
           <>
-            Start today. <em>Earn your first flame.</em>
+            Start today. <em><Scramble text="Earn your first flame." /></em>
           </>
         )}
       </h1>
@@ -74,7 +81,7 @@ export default function Dashboard({ user, onGo, onRequireAuth }) {
       ) : null}
 
       <section className="dash-split" aria-label="Today">
-        <div className="dash-ivory">
+        <div className="dash-panel">
           <p className="section-label">(TODAY)</p>
           <div className="dash-rings">
             <XpRing value={user.dailyXp} max={DAILY_GOAL_XP} label="XP today" sublabel={`goal ${DAILY_GOAL_XP} XP`} />
@@ -90,7 +97,7 @@ export default function Dashboard({ user, onGo, onRequireAuth }) {
             </div>
           </div>
         </div>
-        <div className="dash-dark">
+        <div className="dash-panel dash-panel-sun">
           <p className="section-label section-label-light">(CONTINUE LEARNING)</p>
           {continueLesson ? (
             <>
@@ -142,6 +149,35 @@ export default function Dashboard({ user, onGo, onRequireAuth }) {
           <span style={{ width: `${dailyRatio * 100}%` }} />
         </div>
         <p className="hint-text">Daily goal progress: {user.dailyXp} / {DAILY_GOAL_XP} XP today.</p>
+        {week.length ? (
+          <div className="week-orbit" role="img" aria-label={`Streak orbit: ${week.map((d) => `${d.label} ${d.xp} XP`).join(', ')}`}>
+            <svg viewBox="0 0 560 150" aria-hidden="true">
+              <ellipse cx="280" cy="105" rx="250" ry="72" fill="none" stroke="#45539a" strokeWidth="1.5" strokeDasharray="4 6" />
+              {week.map((d, i) => {
+                const angle = Math.PI * (1 - i / (week.length - 1 || 1));
+                const x = 280 + 250 * Math.cos(angle);
+                const y = 105 - 72 * Math.sin(angle);
+                const active = d.xp > 0;
+                return (
+                  <g key={d.date} className="orbit-dot" style={{ animationDelay: `${i * 60}ms` }}>
+                    <circle
+                      cx={x}
+                      cy={y}
+                      r={active ? 11 : 7}
+                      fill={active ? '#ff2e88' : '#141c46'}
+                      stroke={active ? '#ffb000' : '#45539a'}
+                      strokeWidth="2"
+                    />
+                    <text x={x} y={142} textAnchor="middle" fill="#a7aed6" fontSize="12" fontFamily="Work Sans, sans-serif">
+                      {d.label}
+                    </text>
+                  </g>
+                );
+              })}
+            </svg>
+            <p className="hint-text">Your week on its orbit — pink dots are days you earned XP.</p>
+          </div>
+        ) : null}
       </section>
 
       <section className="achievements-section" aria-labelledby="ach-heading">
@@ -154,7 +190,7 @@ export default function Dashboard({ user, onGo, onRequireAuth }) {
             const earned = (user.achievements || []).find((a) => a.key === key);
             return (
               <li key={key} className={earned ? 'is-earned' : 'is-locked'}>
-                <span className="ach-mark" aria-hidden="true">{earned ? '🏅' : '○'}</span>
+                <span className="ach-mark" aria-hidden="true">{earned ? '★' : '○'}</span>
                 <span className="ach-text">
                   <strong>{earned ? earned.title : key.replace(/-/g, ' ')}</strong>
                   <span>{info}</span>

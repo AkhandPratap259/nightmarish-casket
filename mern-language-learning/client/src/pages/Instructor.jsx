@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { api } from '../api';
 import Dialog from '../components/Dialog';
+import HoldButton from '../components/HoldButton';
+import Scramble from '../components/Scramble';
 
 // Instructor studio: create, edit and delete lessons. Exercises are built
 // row by row — type, prompt, question, options (comma-separated) or pairs
@@ -166,7 +168,7 @@ export default function Instructor({ user, notify }) {
   }
 
   async function removeLesson(lesson) {
-    if (!window.confirm(`Delete “${lesson.title}”?`)) return;
+    // Hold-to-confirm replaces the window.confirm — the hold IS the check.
     try {
       await api.deleteLesson(lesson.id);
       setLessons((ls) => ls.filter((l) => l.id !== lesson.id));
@@ -180,7 +182,7 @@ export default function Instructor({ user, notify }) {
     <div className="page">
       <p className="section-label">(INSTRUCTOR STUDIO)</p>
       <h1>
-        Build lessons, <em>shape the tree.</em>
+        Build lessons, <em><Scramble text="shape the tree." /></em>
       </h1>
       <p className="page-sub">
         Lessons you create appear in the skill tree in unit, then order. Answers are stored on the
@@ -223,9 +225,13 @@ export default function Instructor({ user, notify }) {
                 <button type="button" className="btn btn-ghost btn-small" onClick={() => openEdit(lesson)}>
                   Edit
                 </button>
-                <button type="button" className="btn btn-ghost btn-small" onClick={() => removeLesson(lesson)}>
+                <HoldButton
+                  className="btn-ghost btn-small"
+                  onConfirm={() => removeLesson(lesson)}
+                  label={`Hold to delete ${lesson.title}`}
+                >
                   Delete
-                </button>
+                </HoldButton>
               </span>
             </li>
           ))}

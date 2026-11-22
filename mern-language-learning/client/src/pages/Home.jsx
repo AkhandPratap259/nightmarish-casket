@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { api } from '../api';
 import { config, DAILY_GOAL_XP } from '../data/config';
+import Scramble from '../components/Scramble';
 
 export default function Home({ user, onGo, onRequireAuth }) {
   const [languages, setLanguages] = useState([]);
@@ -24,10 +25,35 @@ export default function Home({ user, onGo, onRequireAuth }) {
   return (
     <div className="home">
       <section className="hero-split" aria-labelledby="home-heading">
+        <div className="hero-scene" aria-hidden="true">
+          <svg className="hero-sun" viewBox="0 0 400 400">
+            <defs>
+              <linearGradient id="heroSunGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0" stopColor="#ffe95e" />
+                <stop offset="0.55" stopColor="#ff7a18" />
+                <stop offset="1" stopColor="#ff2e88" />
+              </linearGradient>
+              <clipPath id="heroSunClip"><circle cx="200" cy="200" r="150" /></clipPath>
+            </defs>
+            <circle cx="200" cy="200" r="150" fill="url(#heroSunGrad)" />
+            <g fill="#0a0e27" clipPath="url(#heroSunClip)">
+              <rect x="30" y="212" width="340" height="7" />
+              <rect x="30" y="238" width="340" height="11" />
+              <rect x="30" y="270" width="340" height="15" />
+              <rect x="30" y="308" width="340" height="21" />
+              <rect x="30" y="352" width="340" height="28" />
+            </g>
+          </svg>
+          <div className="grid-floor" />
+        </div>
         <div className="hero-left">
           <p className="section-label">(01) GAMIFIED LANGUAGE LEARNING</p>
           <h1 id="home-heading">
-            Learn a language, <em>one small win</em> at a time.
+            <Scramble text="Learn a language, " />
+            <em>
+              <Scramble text="one small win" />
+            </em>{' '}
+            <Scramble text="at a time." />
           </h1>
           <p className="hero-sub">
             Short lessons with hearts, XP and streaks — in Spanish, French, German and Japanese.

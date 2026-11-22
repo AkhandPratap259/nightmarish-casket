@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { api } from '../api';
+import Scramble from '../components/Scramble';
 
 export default function Admin({ user }) {
   const [overview, setOverview] = useState(null);
@@ -39,7 +40,7 @@ export default function Admin({ user }) {
     <div className="page">
       <p className="section-label">(ADMIN) PLATFORM OVERVIEW</p>
       <h1>
-        The whole platform, <em>on one page.</em>
+        The whole platform, <em><Scramble text="on one page." /></em>
       </h1>
       <dl className="stat-grid">
         <div>
@@ -84,7 +85,7 @@ export default function Admin({ user }) {
             <li key={u._id} className="board-row">
               <span className="board-rank" aria-hidden="true">{i + 1}</span>
               <span className="board-name">{u.name}</span>
-              <span className="board-meta">Level {u.level} · 🔥 {u.streak} · {u.lessonsCompleted} lessons</span>
+              <span className="board-meta">Level {u.level} · {u.streak}-day streak · {u.lessonsCompleted} lessons</span>
               <span className="board-xp">{u.xp} XP</span>
             </li>
           ))}

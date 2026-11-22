@@ -1,6 +1,9 @@
-// Animated skill tree: lessons hang on a winding path, alternating sides
+// Animated skill tree: lessons hang on an orbit path, alternating sides
 // as the learner descends. Locked lessons are muted and unclickable;
 // completed ones carry a check; the next open lesson pulses gently.
+// Node titles scramble-reveal (D6) when they mount.
+import Scramble from './Scramble';
+
 export default function SkillTree({ units, onStart }) {
   let globalIndex = 0;
   return (
@@ -35,7 +38,9 @@ export default function SkillTree({ units, onStart }) {
                     </span>
                   </button>
                   <div className="tree-node-text">
-                    <span className="tree-node-title">{lesson.title}</span>
+                    <span className="tree-node-title">
+                      <Scramble text={lesson.title} />
+                    </span>
                     <span className="tree-node-meta">
                       {lesson.exerciseCount} exercises · +{lesson.xpReward} XP
                       {lesson.status === 'completed' && lesson.bestScore ? ` · best ${lesson.bestScore}%` : ''}

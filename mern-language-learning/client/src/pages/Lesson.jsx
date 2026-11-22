@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { api } from '../api';
 import { SPEECH_LANG } from '../data/config';
+import Scramble from '../components/Scramble';
 import LessonPlayer from '../components/LessonPlayer';
 
 export default function Lesson({ lessonId, onExit, onFinished, notify }) {
@@ -50,7 +51,7 @@ export default function Lesson({ lessonId, onExit, onFinished, notify }) {
     <div className="page lesson-page">
       <p className="section-label">(LESSON) {lesson.unitTitle.toUpperCase()}</p>
       <h1>
-        {lesson.title} <em>· {lesson.exercises.length} exercises</em>
+        <Scramble text={lesson.title} /> <em>· {lesson.exercises.length} exercises</em>
       </h1>
       <LessonPlayer
         key={`${lesson.id}-${restartKey}`}

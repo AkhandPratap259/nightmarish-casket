@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { api, setToken, setStoredUser } from '../api';
 import { config } from '../data/config';
+import Scramble from '../components/Scramble';
 
 export default function Auth({ mode, onAuth, onGo }) {
   const [isLogin, setIsLogin] = useState(mode !== 'register');
@@ -57,7 +58,7 @@ export default function Auth({ mode, onAuth, onGo }) {
       <p className="section-label">({isLogin ? 'SIGN IN' : 'CREATE ACCOUNT'})</p>
       <h1>
         {isLogin ? 'Welcome back. ' : 'Start learning. '}
-        <em>{isLogin ? 'Your streak missed you.' : 'It takes a minute.'}</em>
+        <em><Scramble key={isLogin ? 'in' : 'up'} text={isLogin ? 'Your streak missed you.' : 'It takes a minute.'} /></em>
       </h1>
       <form className="auth-form" onSubmit={handleSubmit} noValidate>
         {!isLogin ? (

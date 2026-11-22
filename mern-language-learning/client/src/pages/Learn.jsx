@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useState } from 'react';
 import { api } from '../api';
 import SkillTree from '../components/SkillTree';
+import CardDeck from '../components/CardDeck';
+import Scramble from '../components/Scramble';
 import WordCard from '../components/WordCard';
 
 export default function Learn({ language, onLanguage, onStartLesson, onRequireAuth, notify }) {
@@ -54,12 +56,21 @@ export default function Learn({ language, onLanguage, onStartLesson, onRequireAu
     (n, u) => n + u.lessons.filter((l) => l.status === 'completed').length,
     0
   );
+  // MIXUP page: the same lessons as a swipeable card deck (B15) above the
+  // orbit skill tree, and the vocabulary as a masonry waterfall (B6) below.
+  const deckLessons = detail.units.flatMap((u) =>
+    u.lessons.map((l) => ({ ...l, unit: u.unit, unitTitle: u.title }))
+  );
+  const deckStart = Math.max(
+    0,
+    deckLessons.findIndex((l) => l.status !== 'completed')
+  );
 
   return (
     <div className="page learn-page">
       <p className="section-label">(LEARN) SKILL TREE</p>
       <h1>
-        {lang.name} <em>· {lang.nativeName}</em>
+        <Scramble text={lang.name} /> <em>· {lang.nativeName}</em>
       </h1>
       <p className="page-sub">{lang.description}</p>
       <p className="page-sub">
@@ -85,6 +96,15 @@ export default function Learn({ language, onLanguage, onStartLesson, onRequireAu
         <p className="form-error" role="alert">{error}</p>
       ) : null}
 
+      <CardDeck
+        lessons={deckLessons}
+        startIndex={deckStart}
+        onStart={(lessonId) => {
+          if (!detail) return;
+          onStartLesson(lessonId);
+        }}
+      />
+
       <SkillTree
         units={detail.units}
         onStart={(lessonId) => {
@@ -99,7 +119,7 @@ export default function Learn({ language, onLanguage, onStartLesson, onRequireAu
           Every word in <em>{lang.name}.</em>
         </h2>
         <p>Sample beginner vocabulary for this course. Listen to each word, or add it to your review deck.</p>
-        <div className="word-list">
+        <div className="vocab-masonry">
           {detail.vocabulary.map((word) => (
             <WordCard
               key={word.word}

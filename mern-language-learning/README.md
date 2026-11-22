@@ -48,27 +48,35 @@ awards XP), so the client cannot award itself points or skip ahead.
 
 ## Theme and interactive upgrades
 
-**Theme: Editorial x Creative Split, electric blue accent.** Warm ivory
-background, deep charcoal, muted grey text and one flat electric-blue
-accent used only for meaning (section numbers, active states, the
-emphasised word, primary actions). Oversized Space Grotesk headlines with
-one italic serif phrase each, numbered section labels like (01) LABEL, hard
-light/dark splits with a different composition per section — the hero is a
-two-column split, the dashboard pairs an ivory stats panel with a dark
-continue-learning panel. No rounded-card grids, no bento layouts, no neon
-glow, no gradients, no stock photos.
+**Design DNA (redesign, 2026-11-22): Synthwave 80s × Observatory space (MIXUP).**
+Deep-navy night sky with a code-drawn star field and orbit lines, a striped
+synthwave sun rising over a perspective grid horizon, and hot-pink / sunset-
+orange / neon-cyan accents. Unbounded display type with Work Sans body.
+Lessons are a swipeable card deck (drag, arrow keys or buttons) that opens
+into the orbit skill tree, and the vocabulary bank is a masonry waterfall —
+two layout families on the same Learn page. Headings and skill-tree nodes
+reveal with a text scramble; lesson completion and lesson deletion are
+hold-to-confirm; route and exercise changes cut in with a glitch cut. Every
+duration and easing is mechanical stepped — nothing eases smoothly. The
+dashboard pairs a gradient XP ring with a 7-day XP skyline chart and a
+streak orbit drawn from the learner's real week data. All animation respects
+`prefers-reduced-motion`, and the app stays usable with animations disabled.
 
 **Interactive upgrades over the previous project (BidSphere):**
 
-- Animated skill-tree path — lessons hang on a winding path alternating
-  left and right, the next open lesson pulses gently, completed nodes fill
-  with the accent colour.
+- Animated skill-tree path — lessons hang on a winding orbit line
+  alternating left and right, the next open lesson pulses gently, completed
+  nodes fill with the sunset gradient, and node titles scramble-reveal.
+- Swipeable lesson deck — the current unit's lessons as a stacked card deck
+  under the sun; swipe, drag or use ← → keys to flip cards, dots and
+  Prev/Next buttons included.
 - XP ring and level bar that animate when XP is gained; the streak flame
   pulses; hearts pop and fade when one is lost.
 - Live leaderboard rows re-sort and flash when anyone earns XP.
 - Matching-pairs exercise with flip animation on a correct match and a
-  shake on a wrong one; listen exercises speak through the browser.
-- Lesson-completion celebration as a CSS reveal (no confetti library).
+  glitch shake on a wrong one; listen exercises speak through the browser.
+- Lesson completion is hold-to-confirm; deleting a lesson (instructor) is
+  hold-to-confirm too.
 - Small cursor ring only (fading trail dots and click ripples) — no large
   glow orb. All animation respects `prefers-reduced-motion`, and the app
   stays usable with JavaScript animations disabled.

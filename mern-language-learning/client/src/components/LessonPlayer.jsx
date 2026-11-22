@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { api } from '../api';
 import { speak, XP_PER_CORRECT } from '../data/config';
+import HoldButton from './HoldButton';
 
 // The lesson session player: hearts, XP, progress and four exercise types.
 // Answers are sent to the server, which validates them and awards XP —
@@ -148,7 +149,7 @@ export default function LessonPlayer({ lesson, speechLang, onExit, onFinished, n
           <div className="result-achievements">
             <p className="section-label">NEW BADGE{result.newAchievements.length > 1 ? 'S' : ''}</p>
             {result.newAchievements.map((a) => (
-              <p key={a.key} className="achievement-new">🏅 {a.title}</p>
+              <p key={a.key} className="achievement-new">★ {a.title}</p>
             ))}
           </div>
         ) : null}
@@ -190,7 +191,12 @@ export default function LessonPlayer({ lesson, speechLang, onExit, onFinished, n
         <div className="lesson-hearts" aria-label={`${hearts} hearts left`}>
           {[0, 1, 2].map((i) => (
             <span key={`${i}-${i < hearts}`} className={`heart ${i < hearts ? 'is-full' : 'is-lost'}`} aria-hidden="true">
-              ♥
+              <svg width="26" height="24" viewBox="0 0 24 22">
+                <path
+                  d="M12 21s-8.5-5.6-8.5-11A4.6 4.6 0 0 1 12 7a4.6 4.6 0 0 1 8.5 3c0 5.4-8.5 11-8.5 11z"
+                  strokeWidth="1.8"
+                />
+              </svg>
             </span>
           ))}
         </div>
@@ -200,7 +206,7 @@ export default function LessonPlayer({ lesson, speechLang, onExit, onFinished, n
       <p className="section-label">
         EXERCISE {index + 1} OF {exercises.length} · {lesson.unitTitle.toUpperCase()}
       </p>
-      <h2 className="lesson-question">{exercise.prompt}</h2>
+      <h2 key={index} className="lesson-question glitch-in">{exercise.prompt}</h2>
 
       {exercise.type === 'mc' || exercise.type === 'listen' ? (
         <div className="exercise-block">
@@ -330,9 +336,21 @@ export default function LessonPlayer({ lesson, speechLang, onExit, onFinished, n
               The answer was: <strong>{formatAnswer(feedback.correctAnswer)}</strong>
             </p>
           ) : null}
-          <button type="button" className="btn btn-primary" onClick={continueNext} disabled={submitting}>
-            {isLast ? 'Finish lesson' : 'Continue'}
-          </button>
+          {isLast ? (
+            <HoldButton
+              className="btn-primary"
+              onConfirm={continueNext}
+              disabled={submitting}
+              label="Hold to finish the lesson"
+              hint="Press and hold to finish the lesson — it locks in your score."
+            >
+              Finish lesson
+            </HoldButton>
+          ) : (
+            <button type="button" className="btn btn-primary" onClick={continueNext} disabled={submitting}>
+              Continue
+            </button>
+          )}
         </div>
       ) : null}
     </div>

@@ -4,6 +4,7 @@ import { config } from './data/config';
 import { getSocket, disconnectSocket } from './socket';
 import Cursor from './components/Cursor';
 import Dialog from './components/Dialog';
+import Starfield from './components/Starfield';
 import Home from './pages/Home';
 import Learn from './pages/Learn';
 import Lesson from './pages/Lesson';
@@ -21,6 +22,7 @@ export default function App() {
   const [authOpen, setAuthOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [boardTick, setBoardTick] = useState(0);
+  const [flashKey, setFlashKey] = useState(0);
   const toastId = useRef(0);
 
   const notify = useCallback((message, kind = 'info') => {
@@ -32,6 +34,7 @@ export default function App() {
   const go = useCallback((next) => {
     setView(next);
     setMenuOpen(false);
+    setFlashKey((k) => k + 1);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, []);
 
@@ -114,14 +117,40 @@ export default function App() {
   }
   if (user?.role === 'admin') navLinks.push({ label: 'Admin', view: { name: 'admin' } });
 
+  const viewKey = `${view.name}-${view.language || ''}-${view.id || ''}`;
+
   return (
     <div className="app">
       <a className="skip-link" href="#main">Skip to main content</a>
+      <Starfield />
       <Cursor />
+      {flashKey > 0 ? (
+        <div key={flashKey} className="glitch-flash" aria-hidden="true">
+          <i />
+          <i />
+          <i />
+        </div>
+      ) : null}
       <header className="topbar">
         <div className="nav-inner">
           <button type="button" className="logo" onClick={() => go({ name: 'home' })} aria-label="LinguaLeap — home">
-            <span className="logo-mark" aria-hidden="true">L</span> LinguaLeap
+            <svg className="logo-mark" width="34" height="34" viewBox="0 0 34 34" aria-hidden="true">
+              <defs>
+                <linearGradient id="logoSun" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0" stopColor="#ffe95e" />
+                  <stop offset="0.55" stopColor="#ff7a18" />
+                  <stop offset="1" stopColor="#ff2e88" />
+                </linearGradient>
+                <clipPath id="logoSunClip"><circle cx="17" cy="17" r="15" /></clipPath>
+              </defs>
+              <circle cx="17" cy="17" r="15" fill="url(#logoSun)" />
+              <g fill="#0a0e27" clipPath="url(#logoSunClip)">
+                <rect x="2" y="19" width="30" height="2" />
+                <rect x="2" y="23" width="30" height="3" />
+                <rect x="2" y="28" width="30" height="4" />
+              </g>
+            </svg>
+            LinguaLeap
           </button>
           <nav className="nav-links" aria-label="Main navigation">
             {navLinks.map((l) => (
@@ -140,7 +169,7 @@ export default function App() {
             {user ? (
               <>
                 <span className="nav-user">
-                  🔥 {user.streak} · {user.xp} XP
+                  {user.streak}-day streak · {user.xp} XP
                 </span>
                 <button type="button" className="btn btn-ghost btn-small" onClick={signOut}>
                   Sign out
@@ -180,34 +209,36 @@ export default function App() {
       </header>
 
       <main id="main">
-        {view.name === 'home' ? (
-          <Home user={user} onGo={go} onRequireAuth={requireAuth} />
-        ) : view.name === 'learn' ? (
-          <Learn
-            language={view.language || 'es'}
-            onLanguage={(code) => go({ name: 'learn', language: code })}
-            onStartLesson={(id) => go({ name: 'lesson', id, language: view.language || 'es' })}
-            onRequireAuth={requireAuth}
-            notify={notify}
-          />
-        ) : view.name === 'lesson' ? (
-          <Lesson
-            lessonId={view.id}
-            onExit={() => go({ name: 'learn', language: view.language || 'es' })}
-            onFinished={handleUserUpdate}
-            notify={notify}
-          />
-        ) : view.name === 'review' ? (
-          <Review onFinished={handleUserUpdate} notify={notify} />
-        ) : view.name === 'leaderboard' ? (
-          <Leaderboard user={user} boardTick={boardTick} />
-        ) : view.name === 'dashboard' ? (
-          <Dashboard user={user} onGo={go} onRequireAuth={requireAuth} />
-        ) : view.name === 'instructor' ? (
-          <Instructor user={user} notify={notify} />
-        ) : view.name === 'admin' ? (
-          <Admin user={user} />
-        ) : null}
+        <div key={viewKey} className="glitch-in">
+          {view.name === 'home' ? (
+            <Home user={user} onGo={go} onRequireAuth={requireAuth} />
+          ) : view.name === 'learn' ? (
+            <Learn
+              language={view.language || 'es'}
+              onLanguage={(code) => go({ name: 'learn', language: code })}
+              onStartLesson={(id) => go({ name: 'lesson', id, language: view.language || 'es' })}
+              onRequireAuth={requireAuth}
+              notify={notify}
+            />
+          ) : view.name === 'lesson' ? (
+            <Lesson
+              lessonId={view.id}
+              onExit={() => go({ name: 'learn', language: view.language || 'es' })}
+              onFinished={handleUserUpdate}
+              notify={notify}
+            />
+          ) : view.name === 'review' ? (
+            <Review onFinished={handleUserUpdate} notify={notify} />
+          ) : view.name === 'leaderboard' ? (
+            <Leaderboard user={user} boardTick={boardTick} />
+          ) : view.name === 'dashboard' ? (
+            <Dashboard user={user} onGo={go} onRequireAuth={requireAuth} />
+          ) : view.name === 'instructor' ? (
+            <Instructor user={user} notify={notify} />
+          ) : view.name === 'admin' ? (
+            <Admin user={user} />
+          ) : null}
+        </div>
       </main>
 
       <footer className="site-footer">
