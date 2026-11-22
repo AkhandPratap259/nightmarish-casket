@@ -8,6 +8,7 @@ import { config, TYPE_LABELS, STATUS_LABELS } from './data/config.js';
 import Cursor from './components/Cursor.jsx';
 import Dialog from './components/Dialog.jsx';
 import PropertyArt from './components/PropertyArt.jsx';
+import FloorPlan from './components/FloorPlan.jsx';
 
 let socket = null;
 function connectSocket(userId) {
@@ -39,6 +40,8 @@ function EmiCalculator({ initialPrice }) {
   const [busy, setBusy] = useState(false);
   const local = emiLocal(principal, rate, years);
   const total = local * years * 12;
+  const interest = total - principal;
+  const principalPct = total > 0 ? Math.round((principal / total) * 100) : 100;
 
   async function checkServer() {
     setError('');
@@ -58,6 +61,14 @@ function EmiCalculator({ initialPrice }) {
       <p className="label">(EMI) — WORK OUT THE MONTHLY COST</p>
       <p className="emi-big">{inr(local)}<span> / month</span></p>
       <p className="emi-sub">Total over {years} years: {inr(total)} · interest {inr(total - principal)}</p>
+      <div className="emi-split-bar" role="img" aria-label={`Of the total ${inr(total)}, ${principalPct}% is the loan amount and ${100 - principalPct}% is interest`}>
+        <span className="emi-principal" style={{ width: `${principalPct}%` }} />
+        <span className="emi-interest" style={{ width: `${100 - principalPct}%` }} />
+      </div>
+      <p className="emi-split-legend">
+        <span><span className="swatch swatch-p" /> Loan {inr(principal)} ({principalPct}%)</span>
+        <span><span className="swatch swatch-i" /> Interest {inr(interest)} ({100 - principalPct}%)</span>
+      </p>
       <label className="field">
         <span>Loan amount — {inr(principal)}</span>
         <input type="range" min="500000" max="30000000" step="100000" value={principal} onChange={(e) => setPrincipal(Number(e.target.value))} aria-label="Loan amount" />
@@ -285,6 +296,23 @@ export default function App() {
   const [toasts, setToasts] = useState([]);
   const [saveSearchName, setSaveSearchName] = useState('');
   const toastId = useRef(0);
+  // E2 Circular reveal: the last pointer-down point is where the next view
+  // is revealed from. Falls back to screen centre on keyboard navigation.
+  const clickPoint = useRef({ x: '50%', y: '50%' });
+  const [revealKey, setRevealKey] = useState(0);
+
+  useEffect(() => {
+    const onDown = (e) => {
+      clickPoint.current = { x: `${e.clientX}px`, y: `${e.clientY}px` };
+    };
+    document.addEventListener('pointerdown', onDown, { passive: true });
+    return () => document.removeEventListener('pointerdown', onDown);
+  }, []);
+
+  useEffect(() => {
+    // A fresh reveal disc on every view change; it shrinks away on its own.
+    setRevealKey((k) => k + 1);
+  }, [view.name]);
 
   const pushToast = useCallback((text) => {
     const id = ++toastId.current;
@@ -562,10 +590,28 @@ export default function App() {
     <div className="app">
       <a className="skip-link" href="#main">Skip to main content</a>
       <Cursor />
+      {/* D20 displacement filter, defined once and referenced by CSS on hover */}
+      <svg width="0" height="0" style={{ position: 'absolute' }} aria-hidden="true">
+        <defs>
+          <filter id="bp-distort" x="-20%" y="-20%" width="140%" height="140%">
+            <feTurbulence type="fractalNoise" baseFrequency="0.012 0.02" numOctaves="2" seed="7" result="noise" />
+            <feDisplacementMap in="SourceGraphic" in2="noise" scale="14" xChannelSelector="R" yChannelSelector="G" />
+          </filter>
+        </defs>
+      </svg>
+      {revealKey > 0 ? (
+        <div
+          key={revealKey}
+          className="view-reveal"
+          aria-hidden="true"
+          style={{ '--rx': clickPoint.current.x, '--ry': clickPoint.current.y }}
+        />
+      ) : null}
       <Toasts toasts={toasts} />
       <header className="topbar">
         <button type="button" className="brand" onClick={() => setView({ name: 'browse' })}>
           NestHunt<span className="brand-dot">.</span>
+          <small>BLUEPRINT EDITION</small>
         </button>
         <nav aria-label="Main">
           <button type="button" className="nav-link" onClick={() => setView({ name: 'browse' })}>Browse</button>
@@ -584,7 +630,7 @@ export default function App() {
       <main id="main">
         {view.name === 'browse' ? (
           <div className="browse-page">
-            <section className="hero" data-reveal>
+            <section className="hero" data-reveal aria-label="Featured home">
               <div className="hero-copy">
                 <p className="label">(01) — BROWSE HOMES</p>
                 <h1>
@@ -600,6 +646,13 @@ export default function App() {
                   <button type="button" className="btn btn-ghost" onClick={openAnalytics}>See price analytics</button>
                 </div>
               </div>
+              <figure className="hero-sheet sheet" aria-label="Illustrative blueprint floor plan">
+                <FloorPlan property={cheapest} />
+                <figcaption>
+                  <span>Sheet A-101 — floor plan</span>
+                  <span>{cheapest ? `${cheapest.beds} bed · ${cheapest.areaSqft.toLocaleString('en-IN')} sq ft` : 'No listings yet'}</span>
+                </figcaption>
+              </figure>
               <div className="hero-panel" aria-label="Cheapest listing">
                 {cheapest ? (
                   <>
@@ -627,6 +680,7 @@ export default function App() {
                 </button>
               </div>
               <div className={`filter-panel ${showFilters ? 'is-open' : ''}`}>
+                <div className="filter-sheet sheet">
                 <div className="filters-grid">
                   <label className="field"><span>Search title, locality or city</span>
                     <input type="search" value={filters.q} onChange={setF('q')} placeholder="e.g. Gomti Nagar" aria-label="Search by title, locality or city" />
@@ -676,6 +730,7 @@ export default function App() {
                   <button type="button" className="btn btn-primary btn-small" onClick={saveCurrentSearch}>Save this search + alert me</button>
                   <button type="button" className="btn btn-ghost btn-small" onClick={() => { setFilters(EMPTY_FILTERS); setSort('newest'); }}>Clear all filters</button>
                 </div>
+                </div>
               </div>
             </section>
 
@@ -691,8 +746,12 @@ export default function App() {
                 <ul className="prop-rows">
                   {properties.map((p, i) => (
                     <li key={p.id} className="prop-row">
+                      <div className="prop-dim" aria-hidden="true">
+                        <span>Sheet {String(i + 1).padStart(2, '0')}</span>
+                        <span className="dim-rule" />
+                        <span>{p.areaSqft.toLocaleString('en-IN')} sq ft</span>
+                      </div>
                       <button type="button" className="prop-row-main" onClick={() => setDetail(p)}>
-                        <span className="prop-index" aria-hidden="true">{String(i + 1).padStart(2, '0')}</span>
                         <span className="prop-art-wrap"><PropertyArt type={p.type} label={p.title} /></span>
                         <span className="prop-row-text">
                           <span className="prop-row-title">
@@ -803,7 +862,7 @@ export default function App() {
             <section data-reveal>
               <div className="section-head"><h2><span className="section-num">(02)</span> Price per sq ft by locality</h2></div>
               {analytics.byLocality.length === 0 ? <p className="empty-state">No listings yet.</p> : (
-                <div className="bars" role="img" aria-label="Bar chart of average price per square foot by locality">
+                <div className="bars sheet" role="img" aria-label="Bar chart of average price per square foot by locality">
                   {(() => {
                     const max = Math.max(...analytics.byLocality.map((r) => r.avgPricePerSqft || 0), 1);
                     return analytics.byLocality.map((r) => (
@@ -885,8 +944,12 @@ export default function App() {
               <ul className="prop-rows">
                 {view.list.map((p, i) => (
                   <li key={p.id} className="prop-row">
+                    <div className="prop-dim" aria-hidden="true">
+                      <span>Sheet {String(i + 1).padStart(2, '0')}</span>
+                      <span className="dim-rule" />
+                      <span>{p.areaSqft.toLocaleString('en-IN')} sq ft</span>
+                    </div>
                     <button type="button" className="prop-row-main" onClick={() => setDetail(p)}>
-                      <span className="prop-index" aria-hidden="true">{String(i + 1).padStart(2, '0')}</span>
                       <span className="prop-art-wrap"><PropertyArt type={p.type} label={p.title} /></span>
                       <span className="prop-row-text">
                         <span className="prop-row-title">{p.title}{p.demo ? <span className="tag tag-sample">Sample</span> : null}</span>
@@ -919,8 +982,12 @@ export default function App() {
               <ul className="prop-rows">
                 {myListings.map((p, i) => (
                   <li key={p.id} className="prop-row">
+                    <div className="prop-dim" aria-hidden="true">
+                      <span>Sheet {String(i + 1).padStart(2, '0')}</span>
+                      <span className="dim-rule" />
+                      <span>{p.areaSqft.toLocaleString('en-IN')} sq ft</span>
+                    </div>
                     <button type="button" className="prop-row-main" onClick={() => setDetail(p)}>
-                      <span className="prop-index" aria-hidden="true">{String(i + 1).padStart(2, '0')}</span>
                       <span className="prop-art-wrap"><PropertyArt type={p.type} label={p.title} /></span>
                       <span className="prop-row-text">
                         <span className="prop-row-title">{p.title}<span className={`status-pill status-${p.status}`}>{STATUS_LABELS[p.status]}</span></span>
