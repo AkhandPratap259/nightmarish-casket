@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { api, inr, timeLeft, timeAgo, CATEGORY_LABELS, CONDITION_LABELS } from '../api';
 import { config, ANTI_SNIPE_NOTE } from '../data/config';
 import LotArt from '../components/LotArt';
+import PriceChart from '../components/PriceChart';
 import CountdownRing from '../components/CountdownRing';
 import { getSocket } from '../socket';
 
@@ -154,8 +155,10 @@ export default function LotDetail({ id, user, onBack, onRequireAuth, notify }) {
         {/* Left — the lot itself. */}
         <div className="lot-visual">
           <p className="label">(Lot) {CATEGORY_LABELS[auction.category]}</p>
-          <h1 aria-label={auction.title}>{auction.title}</h1>
-          <LotArt title={auction.title} category={auction.category} label={CATEGORY_LABELS[auction.category]} className="lot-art-large" />
+          <h1 aria-label={auction.title} style={{ viewTransitionName: `lot-title-${auction.id}` }}>{auction.title}</h1>
+          <div className="lot-visual-art" style={{ viewTransitionName: `lot-art-${auction.id}` }}>
+            <LotArt title={auction.title} category={auction.category} label={CATEGORY_LABELS[auction.category]} className="lot-art-large" />
+          </div>
           <p className="lot-desc">{auction.description}</p>
           <dl className="lot-facts">
             <div><dt>Condition</dt><dd>{CONDITION_LABELS[auction.condition]}</dd></div>
@@ -235,6 +238,13 @@ export default function LotDetail({ id, user, onBack, onRequireAuth, notify }) {
           </button>
         </div>
       </div>
+
+      {/* Live price chart — the lot's real bid history, redrawn on every new bid. */}
+      <section aria-labelledby="chart-heading">
+        <p className="label">(Price climb)</p>
+        <h2 id="chart-heading">The climb, <em>live.</em></h2>
+        <PriceChart bids={bids} startingBid={auction.startingBid} createdAt={auction.createdAt} currentBid={auction.currentBid} />
+      </section>
 
       {/* Live bid feed. */}
       <section className="feed-section" aria-labelledby="feed-heading">

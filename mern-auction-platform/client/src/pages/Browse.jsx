@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { api, inr, timeLeft, CATEGORIES, CATEGORY_LABELS } from '../api';
 import { config } from '../data/config';
 import LotArt from '../components/LotArt';
+import LaneBoard from '../components/LaneBoard';
 import CountdownRing from '../components/CountdownRing';
 import { getSocket } from '../socket';
 
@@ -108,9 +109,17 @@ export default function Browse({ user, onOpenLot, onGo, onRequireAuth, notify })
 
   return (
     <div>
-      {/* (01) HERO — hard split: ivory type-led left, charcoal live-lot right. */}
+      {/* (01) HERO — a riso poster: misregistered mono type, Bauhaus shapes,
+          and a tilted blue live-lot panel with a red offset shadow. */}
       <section className="hero" aria-labelledby="hero-heading">
         <div className="hero-copy">
+          <svg className="hero-shapes" width="180" height="120" viewBox="0 0 180 120" aria-hidden="true">
+            <g style={{ mixBlendMode: 'multiply' }}>
+              <circle cx="40" cy="40" r="34" fill="#e8442e" />
+              <polygon points="110,10 150,80 70,80" fill="#f2c200" />
+              <path d="M 130 118 A 26 26 0 0 1 182 118 Z" fill="#1d3fae" />
+            </g>
+          </svg>
           <p className="label">(01) Live auctions</p>
           <h1 id="hero-heading" aria-label="Bid live. Win loud.">
             Bid <em>live.</em>
@@ -179,7 +188,9 @@ export default function Browse({ user, onOpenLot, onGo, onRequireAuth, notify })
         </div>
       ) : null}
 
-      {/* (02) LOTS — filters, then ruled editorial rows (no card grid). */}
+      {/* (02) LOTS — Kanban lanes by status (B10). Drag a card by its grip
+          to throw it around its lane; dropping it between two cards
+          rearranges that lane. Filters and pagination still apply. */}
       <section className="section" id="lots" aria-labelledby="lots-heading">
         <p className="label">(02) The lots</p>
         <h2 id="lots-heading">
@@ -246,56 +257,13 @@ export default function Browse({ user, onOpenLot, onGo, onRequireAuth, notify })
         ) : auctions.length === 0 ? (
           <p className="empty-state">No lots match these filters yet. Try a different category or clear the search.</p>
         ) : (
-          <ol className="lot-rows">
-            {auctions.map((a, i) => {
-              const left = timeLeft(a.endsAt, now);
-              const live = a.status === 'live' && left;
-              return (
-                <li key={a.id} className="lot-row">
-                  <span className="lot-index" aria-hidden="true">
-                    {String((page - 1) * 12 + i + 1).padStart(2, '0')}
-                  </span>
-                  <button type="button" className="lot-thumb" onClick={() => onOpenLot(a.id)} aria-label={`Open ${a.title}`}>
-                    <LotArt title={a.title} category={a.category} label={CATEGORY_LABELS[a.category]} />
-                  </button>
-                  <button type="button" className="lot-main" onClick={() => onOpenLot(a.id)}>
-                    <span className="lot-title">{a.title}</span>
-                    <span className="lot-meta">
-                      {CATEGORY_LABELS[a.category]} · {a.city} · {a.bidsCount} bid{a.bidsCount === 1 ? '' : 's'}
-                      {a.status === 'ended' && a.winner ? ` · won by ${a.winner.name}` : ''}
-                    </span>
-                  </button>
-                  <span className="lot-bid">
-                    <span className="lot-price" key={a.currentBid}>{inr(a.currentBid)}</span>
-                    <span className="lot-next">next {inr(a.minNextBid)}</span>
-                  </span>
-                  <span className={`lot-time ${live && left && left.length <= 4 ? 'is-urgent-text' : ''}`}>
-                    {live ? left : a.status === 'ended' ? 'Ended' : 'Closed'}
-                  </span>
-                  <span className="lot-actions">
-                    <button
-                      type="button"
-                      className="btn btn-primary btn-small"
-                      onClick={() => onOpenLot(a.id)}
-                      disabled={!live}
-                    >
-                      {live ? 'Bid now' : 'View lot'}
-                    </button>
-                    <button
-                      type="button"
-                      className="watch-btn"
-                      onClick={() => toggleWatch(a)}
-                      disabled={watchBusy[a.id]}
-                      aria-pressed={Boolean(a.watched)}
-                      aria-label={a.watched ? `Stop watching ${a.title}` : `Watch ${a.title}`}
-                    >
-                      {a.watched ? '★ Watching' : '☆ Watch'}
-                    </button>
-                  </span>
-                </li>
-              );
-            })}
-          </ol>
+          <LaneBoard
+            auctions={auctions}
+            now={now}
+            onOpenLot={onOpenLot}
+            toggleWatch={toggleWatch}
+            watchBusy={watchBusy}
+          />
         )}
 
         {pages > 1 ? (
@@ -313,33 +281,39 @@ export default function Browse({ user, onOpenLot, onGo, onRequireAuth, notify })
         ) : null}
       </section>
 
-      {/* (03) HOW IT WORKS — ruled typographic index, not cards. */}
+      {/* (03) HOW IT WORKS — a bento grid (B1 accent) of mixed-size tiles. */}
       <section className="section section-dark" aria-labelledby="how-heading">
         <p className="label label-light">(03) How bidding works</p>
         <h2 id="how-heading" className="on-dark">
           Three rules. <em>One winner.</em>
         </h2>
-        <ol className="rule-rows">
-          <li>
-            <span className="rule-num">01</span>
-            <span className="rule-text">
+        <ol className="bento">
+          <li className="bento-tile bento-tile--wide">
+            <span className="bento-num">01</span>
+            <span className="bento-text">
               <strong>Bid above the line.</strong> Every new bid must beat the current price by at least the lot&rsquo;s
               minimum increment — the server checks it, so two bids racing each other can&rsquo;t both win.
             </span>
+            <svg className="bento-shape" width="54" height="54" viewBox="0 0 54 54" aria-hidden="true">
+              <circle cx="27" cy="27" r="24" fill="#e8442e" />
+            </svg>
           </li>
-          <li>
-            <span className="rule-num">02</span>
-            <span className="rule-text">
+          <li className="bento-tile bento-tile--red">
+            <span className="bento-num">02</span>
+            <span className="bento-text">
               <strong>Last-minute bids extend the clock.</strong> A bid in the final 60 seconds adds 60 seconds to the
               auction. No sniping, no luck — the highest bid wins.
             </span>
           </li>
-          <li>
-            <span className="rule-num">03</span>
-            <span className="rule-text">
+          <li className="bento-tile bento-tile--yellow">
+            <span className="bento-num">03</span>
+            <span className="bento-text">
               <strong>Everyone sees every bid.</strong> Prices, bid counts and the live feed update for all bidders at
               once over Socket.io. Get outbid and you&rsquo;re told straight away.
             </span>
+            <svg className="bento-shape" width="54" height="54" viewBox="0 0 54 54" aria-hidden="true">
+              <polygon points="27,3 51,51 3,51" fill="#1d3fae" />
+            </svg>
           </li>
         </ol>
         <p className="on-dark-muted">

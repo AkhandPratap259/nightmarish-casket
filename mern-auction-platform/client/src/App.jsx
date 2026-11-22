@@ -25,10 +25,24 @@ export default function App() {
     window.setTimeout(() => setToasts((t) => t.filter((x) => x.id !== id)), 6000);
   }, []);
 
+  // View Transitions (E5 shared-element morph): route changes morph the
+  // shared lot art/title between list and detail. Falls back to a bouncy
+  // page-in animation when the API is unavailable (see .no-vt CSS).
+  const [noVt] = useState(
+    () => typeof document === 'undefined' || !('startViewTransition' in document)
+  );
+
   const go = useCallback((next) => {
-    setView(next);
-    setMenuOpen(false);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    const apply = () => {
+      setView(next);
+      setMenuOpen(false);
+      window.scrollTo({ top: 0, behavior: 'auto' });
+    };
+    if (typeof document !== 'undefined' && 'startViewTransition' in document) {
+      document.startViewTransition(apply);
+    } else {
+      apply();
+    }
   }, []);
 
   // Validate the stored session on load; drop it if the server rejects it.
@@ -92,13 +106,21 @@ export default function App() {
   if (user?.role === 'admin') navLinks.push({ label: 'Admin', view: { name: 'admin' } });
 
   return (
-    <div className="app">
+    <div className={`app${noVt ? ' no-vt' : ''}`}>
       <a className="skip-link" href="#main">Skip to main content</a>
       <Cursor />
       <header className="topbar">
         <div className="nav-inner">
           <button type="button" className="logo" onClick={() => go({ name: 'browse' })} aria-label="BidSphere — home">
-            <span className="logo-mark" aria-hidden="true">B</span> BidSphere
+            <span className="logo-mark" aria-hidden="true">
+              <svg width="34" height="34" viewBox="0 0 34 34">
+                <rect x="1" y="1" width="32" height="32" fill="#f7f2e7" stroke="#1d3fae" strokeWidth="2" />
+                <circle cx="13" cy="13" r="7" fill="#e8442e" />
+                <polygon points="24,9 31,24 17,24" fill="#f2c200" />
+                <rect x="6" y="22" width="10" height="7" fill="#1d3fae" />
+              </svg>
+            </span>{' '}
+            BidSphere
           </button>
           <nav className="nav-links" aria-label="Main navigation">
             {navLinks.map((l) => (
@@ -155,7 +177,8 @@ export default function App() {
       </header>
 
       <main id="main">
-        {view.name === 'browse' ? (
+        <div className="page-wrap" key={`${view.name}:${view.id || ''}`}>
+          {view.name === 'browse' ? (
           <Browse user={user} onOpenLot={(id) => go({ name: 'lot', id })} onGo={go} onRequireAuth={requireAuth} notify={notify} />
         ) : view.name === 'lot' ? (
           <LotDetail id={view.id} user={user} onBack={() => go({ name: 'browse' })} onRequireAuth={requireAuth} notify={notify} />
@@ -168,6 +191,7 @@ export default function App() {
         ) : view.name === 'auth' ? (
           <Auth mode={view.mode} onAuth={handleAuth} onGo={go} />
         ) : null}
+        </div>
       </main>
 
       <footer className="site-footer">

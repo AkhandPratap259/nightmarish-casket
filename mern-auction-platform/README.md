@@ -24,7 +24,7 @@ A complete MERN auction platform: browse live lots, place bids that update for e
 
 - **Backend:** Express 4, Mongoose 8, JWT (bcryptjs), Socket.io, mongodb-memory-server (in-memory fallback)
 - **Frontend:** React 18 + Vite, plain CSS with design tokens, Socket.io client
-- **Theme:** Editorial x Creative Split — warm ivory, deep charcoal, one acid-lime accent; oversized type-led headings, ruled lot rows, hard light/dark split on the lot page; small cursor ring only (no large glow orb)
+- **Design (redesigned 2026-11-22):** Risograph print × Bauhaus primaries — two-colour overprint with misregistration and grain on warm paper, geometric shapes in red, blue and yellow; Rubik Mono One + Rubik. Kanban lanes (live / ending soon / ended) with drag-and-throw cards that fly with inertia and bounce back, a bento grid for how-it-works and admin stats, and a live bid-history price chart drawn from real bids. Placing a bid morphs the lot card into its detail view via the View Transitions API (CSS bounce fallback). Playful-bounce motion throughout; reduced motion honoured.
 
 ## How to run locally
 
