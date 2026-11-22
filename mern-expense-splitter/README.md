@@ -126,13 +126,18 @@ mern-expense-splitter/
 
 ## Design
 
-Editorial x Creative Split: warm ivory and deep charcoal with a single
-electric-blue accent, oversized Space Grotesk headlines with one italic-serif
-emphasis per headline, numbered section labels, and asymmetric light/dark
-splits that differ per section. Interactive details: animated balance bars,
-count-up totals, a settlement-flow diagram that animates transfer by transfer,
-an SVG category donut, and a split editor with live validation. Animations
-respect `prefers-reduced-motion`.
+Redesigned 2026-11-22 — **Newsprint tabloid × Terminal noir**: warm newsprint
+paper with halftone-dot texture, shouting Fraunces headlines in tabloid red,
+and terminal-noir surfaces (IBM Plex Mono data, phosphor amber/green, scanlines)
+on the dark panels. Layouts: a horizontal scroll rail of group "editions" and
+Kanban lanes (Owes / Gets back / Settled up) for balances. Interactions: a
+scroll-pinned "settlement story" on the home page — the pinned panel swaps its
+headline and diagram as the story scrolls — and 3D tilt cards with depth
+layers. Route changes flip like a turning page (Page flip transition), and
+every duration and easing follows a slow cinematic motion personality.
+Data-driven visuals: a debt-simplification settlement diagram drawn from the
+group's real settlement plan, animated balance bars, an SVG category donut,
+and a month chart. Animations respect `prefers-reduced-motion`.
 
 ## Status
 

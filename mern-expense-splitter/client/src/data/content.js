@@ -58,11 +58,14 @@ export const DEMO_ACCOUNT = {
 };
 
 export const CATEGORY_COLOURS = {
-  Food: '#2547f4',
-  Travel: '#1c1a17',
-  Stay: '#6f6a61',
-  Shopping: '#7a5af8',
-  Entertainment: '#0e7a5f',
-  Utilities: '#b45309',
-  Other: '#9a938a',
+  Food: '#c8102e',
+  Travel: '#9c0c23',
+  Stay: '#17130c',
+  Shopping: '#7a3b2e',
+  Entertainment: '#146c43',
+  Utilities: '#2e5f8a',
+  Transport: '#b97a00',
+  Activities: '#146c43',
+  Other: '#6d6350',
+  Misc: '#6d6350',
 };

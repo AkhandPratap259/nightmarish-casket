@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link, NavLink, Route, Routes, useNavigate } from 'react-router-dom';
+import { Link, NavLink, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import { getStoredUser, setStoredUser, setToken, userIdOf } from './api';
 import { disconnectSocket, getSocket } from './socket';
 import Cursor from './components/Cursor';
@@ -32,6 +32,13 @@ function ScrollProgress() {
 export default function App() {
   const [user, setUser] = useState(() => getStoredUser());
   const navigate = useNavigate();
+  const location = useLocation();
+  const dateline = new Date().toLocaleDateString('en-IN', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  });
 
   useEffect(() => {
     if (user) getSocket(userIdOf(user));
@@ -61,6 +68,11 @@ export default function App() {
         <Link className="nav-logo" to="/">
           Fair<span className="nav-logo-accent">Share</span>
         </Link>
+        <span className="nav-dateline" aria-hidden="true">
+          The FairShare Ledger · {dateline}
+          <br />
+          Est. 2026 · No card, no fees
+        </span>
         <nav className="nav-links" aria-label="Main navigation">
           <NavLink to="/" end>Home</NavLink>
           {user && <NavLink to="/dashboard">Dashboard</NavLink>}
@@ -85,6 +97,8 @@ export default function App() {
       </header>
 
       <div id="main-content">
+        {/* E10 Page flip: the key remounts the wrapper per route, replaying the flip. */}
+        <div key={location.pathname} className="page-flip">
         <Routes>
           <Route path="/" element={<Home user={user} />} />
           <Route path="/login" element={<Auth mode="login" onAuth={handleAuth} />} />
@@ -103,6 +117,7 @@ export default function App() {
             }
           />
         </Routes>
+        </div>
       </div>
 
       <footer className="footer">

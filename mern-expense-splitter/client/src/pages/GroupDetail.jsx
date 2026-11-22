@@ -9,6 +9,7 @@ import Dialog from '../components/Dialog';
 import SplitEditor from '../components/SplitEditor';
 import BalanceBar from '../components/BalanceBar';
 import SettlementFlow from '../components/SettlementFlow';
+import SettlementDiagram from '../components/SettlementDiagram';
 import CategoryDonut from '../components/CategoryDonut';
 import Reveal from '../components/Reveal';
 
@@ -466,18 +467,35 @@ export default function GroupDetail({ user }) {
             <div className="balances-grid">
               <div>
                 <h3 className="section-title-small">Per-member balance</h3>
-                {balanceMembers.map((m) => (
-                  <BalanceBar
-                    key={m.userId || m.name}
-                    name={m.name}
-                    net={m.net}
-                    maxAbs={maxAbs}
-                    currency={currency}
-                  />
-                ))}
+                <div className="kanban-lanes">
+                  {[
+                    { id: 'owes', label: 'Owes', cls: 'kanban-lane--owes', list: balanceMembers.filter((m) => m.net < -0.005) },
+                    { id: 'owed', label: 'Gets back', cls: 'kanban-lane--owed', list: balanceMembers.filter((m) => m.net > 0.005) },
+                    { id: 'settled', label: 'Settled up', cls: 'kanban-lane--settled', list: balanceMembers.filter((m) => Math.abs(m.net) <= 0.005) },
+                  ].map((lane) => (
+                    <div key={lane.id} className={`kanban-lane ${lane.cls}`}>
+                      <div className="kanban-lane-head">
+                        <span>{lane.label}</span>
+                        <span>{lane.list.length}</span>
+                      </div>
+                      <div className="kanban-lane-body">
+                        {lane.list.length === 0 ? (
+                          <p className="kanban-empty">Nobody here yet.</p>
+                        ) : (
+                          lane.list.map((m, i) => (
+                            <div key={m.userId || m.name} className="kanban-card" style={{ animationDelay: `${i * 120}ms` }}>
+                              <BalanceBar name={m.name} net={m.net} maxAbs={maxAbs} currency={currency} />
+                            </div>
+                          ))
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
               <div className="settlement-panel">
                 <h3 className="section-title-small">Simplified settlement plan</h3>
+                <SettlementDiagram plan={simplified} currency={currency} />
                 <SettlementFlow
                   plan={simplified}
                   beforeCount={beforeCount}

@@ -13,7 +13,7 @@ export default function CountUp({ value, format }) {
       return undefined;
     }
     const start = performance.now();
-    const duration = 900;
+    const duration = 1400; // F2 Slow cinematic
     const tick = (now) => {
       const p = Math.min(1, (now - start) / duration);
       const eased = 1 - (1 - p) * (1 - p);
