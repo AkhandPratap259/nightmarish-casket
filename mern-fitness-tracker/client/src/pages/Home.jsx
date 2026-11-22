@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { HOME_COPY, config } from '../data/config.js';
 import { getSocket } from '../socket.js';
 import { formatKg, formatDuration } from '../api.js';
+import Marquee from '../components/Marquee.jsx';
 
 function useLiveFeed() {
   const [events, setEvents] = useState([]);
@@ -16,11 +17,29 @@ function useLiveFeed() {
   return events;
 }
 
+const STORY_SLIDES = [
+  { id: 'slide-top', label: 'Start' },
+  { id: 'slide-how', label: 'How it works' },
+  { id: 'slide-library', label: 'The library' },
+  { id: 'slide-trainers', label: 'For trainers' },
+];
+
 export default function Home({ user, go }) {
   const live = useLiveFeed();
+  const marqueeItems = [
+    'Live volume ring',
+    'Rest timer',
+    'Personal records',
+    'Weekly volume',
+    '28 exercises',
+    'Week streaks',
+    ...live.map(
+      (e) => `${e.userName} finished ${e.sessionName} — ${formatKg(e.totalVolume)}`
+    ),
+  ];
   return (
-    <>
-      <section className="hero">
+    <div className="story">
+      <section className="hero story-slide story-slide--pink" id="slide-top">
         <div className="hero-left">
           <p className="eyebrow">{HOME_COPY.heroEyebrow}</p>
           <h1 aria-label="Train with a plan, see the progress.">
@@ -81,16 +100,32 @@ export default function Home({ user, go }) {
             Illustrative preview — the feed shows real sessions completed while you watch.
           </p>
         </div>
+        <nav className="story-dots" aria-label="Story slides">
+          {STORY_SLIDES.map((s, i) => (
+            <button
+              key={s.id}
+              type="button"
+              className="story-dot"
+              onClick={() => document.getElementById(s.id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+              aria-label={`Go to slide ${i + 1}: ${s.label}`}
+            >
+              <span aria-hidden="true">{String(i + 1).padStart(2, '0')}</span> {s.label}
+            </button>
+          ))}
+        </nav>
       </section>
 
-      <section className="section section--light" id="how">
+      <Marquee items={marqueeItems} label="What PulseFit tracks" />
+
+      <section className="section story-slide story-slide--butter" id="slide-how">
         <p className="section-label">(01) {HOME_COPY.howTitle}</p>
         <h2 className="section-title">
           Three steps, <em>every session.</em>
         </h2>
-        <ol className="how-list">
+        <p className="section-body">Swipe or scroll sideways through the steps — each one is a card in the rail.</p>
+        <ol className="how-list rail">
           {HOME_COPY.howSteps.map((step) => (
-            <li key={step.n} className="how-item">
+            <li key={step.n} className="how-item rail-item">
               <span className="how-num">{step.n}</span>
               <h3>{step.title}</h3>
               <p>{step.body}</p>
@@ -99,7 +134,7 @@ export default function Home({ user, go }) {
         </ol>
       </section>
 
-      <section className="section section--dark" id="library">
+      <section className="section section--dark story-slide story-slide--dark" id="slide-library">
         <p className="section-label section-label--light">(02) The library</p>
         <h2 className="section-title section-title--light">
           Twenty-eight exercises, <em>one honest library.</em>
@@ -114,7 +149,7 @@ export default function Home({ user, go }) {
         </button>
       </section>
 
-      <section className="section section--light" id="trainers">
+      <section className="section story-slide story-slide--mint" id="slide-trainers">
         <p className="section-label">(03) For trainers</p>
         <h2 className="section-title">
           Plans and challenges, <em>built for members.</em>
@@ -128,6 +163,6 @@ export default function Home({ user, go }) {
           See challenges
         </button>
       </section>
-    </>
+    </div>
   );
 }

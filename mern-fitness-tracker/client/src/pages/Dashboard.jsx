@@ -3,6 +3,7 @@ import { api, formatKg, formatDuration } from '../api.js';
 import VolumeRing from '../components/VolumeRing.jsx';
 import VolumeChart from '../components/VolumeChart.jsx';
 import MuscleSplit from '../components/MuscleSplit.jsx';
+import Marquee from '../components/Marquee.jsx';
 import { getSocket } from '../socket.js';
 
 export default function Dashboard({ user, go }) {
@@ -56,6 +57,17 @@ export default function Dashboard({ user, go }) {
       <h1 className="section-title">
         Good to see you, <em>{user.name.split(' ')[0]}.</em>
       </h1>
+      <Marquee
+        label="Your training at a glance"
+        items={[
+          `${streak}-week streak`,
+          `${totals.totalSessions} sessions completed`,
+          `${formatKg(totals.totalVolume)} lifetime volume`,
+          `${thisWeek.sessions} session${thisWeek.sessions === 1 ? '' : 's'} this week`,
+          `${formatKg(thisWeek.volume)} lifted this week`,
+          `${totals.recordCount} personal records`,
+        ]}
+      />
       {active && (
         <div className="active-banner" role="status">
           <span>You have a session in progress — {active.name}.</span>

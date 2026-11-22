@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { api, formatKg, formatDuration } from '../api.js';
 import RestTimer from '../components/RestTimer.jsx';
 import VolumeRing from '../components/VolumeRing.jsx';
+import Marquee from '../components/Marquee.jsx';
 import Dialog from '../components/Dialog.jsx';
 
 export default function Session({ sessionId, go }) {
@@ -178,6 +179,15 @@ export default function Session({ sessionId, go }) {
           )}
         </p>
       </div>
+      <Marquee
+        label="Live session stats"
+        items={[
+          session.status === 'active' ? `Live · ${formatDuration(elapsed)}` : `Finished · ${formatDuration(session.durationSeconds)}`,
+          `${doneSets}/${totalSets} sets done`,
+          `${formatKg(session.totalVolume)} lifted so far`,
+          `${session.exercises.length} exercise${session.exercises.length === 1 ? '' : 's'} in this session`,
+        ]}
+      />
       {error && (
         <p className="page-error" role="alert">
           {error}

@@ -61,9 +61,15 @@ export default function App() {
   }, []);
 
   const go = useCallback((page, param) => {
-    window.location.hash = param ? `#/${page}/${param}` : `#/${page}`;
-    setMenuOpen(false);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    const apply = () => {
+      window.location.hash = param ? `#/${page}/${param}` : `#/${page}`;
+      setMenuOpen(false);
+      window.scrollTo({ top: 0, behavior: 'auto' });
+    };
+    // Cross-zoom route transition (E4) via the View Transitions API, with
+    // a plain hash change as the fallback.
+    if (document.startViewTransition) document.startViewTransition(apply);
+    else apply();
   }, []);
 
   function signOut() {
@@ -143,6 +149,7 @@ export default function App() {
       </header>
 
       <main id="main">
+        <div key={activePage} className="page-zoom">
         {activePage === 'home' && <Home user={user} go={go} />}
         {activePage === 'auth' && (
           <Auth
@@ -177,6 +184,7 @@ export default function App() {
               </button>
             </section>
           )}
+        </div>
       </main>
 
       <footer className="footer">

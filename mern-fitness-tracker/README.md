@@ -20,7 +20,7 @@ Train with a plan, see the progress. PulseFit is a full-stack fitness tracker: b
 
 - **Backend:** Node.js, Express, Mongoose, JWT (bcryptjs), Socket.io, mongodb-memory-server (in-memory fallback)
 - **Frontend:** React 18 + Vite, plain CSS with design tokens, Socket.io client
-- **Design:** Editorial x Creative Split — warm ivory, deep charcoal, one acid-lime accent; Space Grotesk display type with one italic serif phrase per headline
+- **Design:** Pastel dopamine × dark luxury — pill UI in pink, butter, mint, sky and lilac over cream, with near-black panels and gold hairlines; Syne display type with Manrope body; story-mode full-screen slides on the home page, a horizontal scroll rail for the how-it-works steps, a scroll-velocity marquee of live training stats, and gooey SVG blobs that swell around the volume ring as a session fills it; cross-zoom route transitions, precise minimal motion throughout
 
 ## How to run locally
 
