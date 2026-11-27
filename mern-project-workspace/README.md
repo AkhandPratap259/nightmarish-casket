@@ -1,8 +1,8 @@
 # FlowBoard / Work in motion
 
-**Editorial × Kinetic edition — a full-stack MERN collaborative project workspace.**
+**FundForge theme edition — a full-stack MERN collaborative project workspace.**
 
-A redesign of the supplied FlowBoard project, not a static landing page. The existing Express/MongoDB API, authentication, seeded board and task workflows remain in place. The visual direction replaces Memphis pop with a restrained ivory / charcoal / orange interface, editorial serif headings and monospace indexing.
+A redesign of the supplied FlowBoard project, not a static landing page. The existing Express/MongoDB API, authentication, seeded board and task workflows remain in place. The visual direction now clones FundForge's theme: Y2K chrome + Aurora glass — DM Serif Display + DM Sans, magenta/aqua/lavender/butter on an aurora field, chrome-gradient panels, bubbly pills with hard shadows, multi-layer parallax chrome bubbles, a cursor spotlight with lens reveal on cards, and curtain-wipe transitions between views. Dropping a card into a column fires TaskTrove's paper-chip drop burst.
 
 ## Quick start (Windows, macOS or Linux)
 
@@ -67,8 +67,8 @@ For production, set `NODE_ENV=production`, configure `MONGO_URI`, a private `JWT
 
 ```text
 client/             React + Vite UI
-  src/components/   Motion, kinetic field, radial menu, task drawer
-  src/styles.css    Complete editorial visual system
+  src/components/   Motion, kinetic field, assembly, curtain, cursor, parallax, drop burst, radial menu, task drawer
+  src/styles.css    Complete FundForge visual system (Y2K chrome + Aurora glass)
 server/             Express + Mongoose API
   src/models/       User, Project, Task, Activity, CardMessage
   src/routes/       Auth, projects, tasks

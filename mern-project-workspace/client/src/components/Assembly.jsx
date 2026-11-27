@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react';
 
 const ease = x => 1 - Math.pow(1 - Math.max(0, Math.min(1, x)), 3);
 const mix = (a,b,t) => a+(b-a)*t;
-const palette = ['#e67b43','#b79c72','#81796e','#74977d'];
+const palette = ['#ff5ea8','#2fd4c4','#5b4bc4','#ffd166'];
 
 // Decorative only: never intercepts input, modifies data or delays mounting.
 export default function Assembly({ motion, scene, drawer }) {

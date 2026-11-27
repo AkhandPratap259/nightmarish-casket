@@ -2,6 +2,10 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { COLUMNS, PRIORITIES, api, dueLabel } from './api';
 import KineticField from './components/KineticField.jsx';
 import Assembly from './components/Assembly.jsx';
+import Curtain from './components/Curtain.jsx';
+import Cursor from './components/Cursor.jsx';
+import Parallax from './components/Parallax.jsx';
+import DropBurst from './components/DropBurst.jsx';
 import { MotionToggle, KineticHeading, useMotionEffects } from './components/Motion.jsx';
 import RadialMenu from './components/RadialMenu.jsx';
 import TaskModal from './components/TaskModal.jsx';
@@ -42,6 +46,11 @@ export default function App() {
   const [dragId, setDragId] = useState(null);
   const [dropCol, setDropCol] = useState(null);
   const [shakeCol, setShakeCol] = useState(null);
+  /* Curtain wipe (E1) + drop bursts (TaskTrove) */
+  const [curtain, setCurtain] = useState('idle');
+  const curtainTimers = useRef([]);
+  const [bursts, setBursts] = useState([]);
+  const burstId = useRef(0);
   const [selected, setSelected] = useState(null);
   const [toast, setToast] = useState('');
   const [showNewTask, setShowNewTask] = useState(false);
@@ -63,6 +72,19 @@ export default function App() {
   const lastCardRef = useRef(null);
 
   const showToast = useCallback((msg) => { clearTimeout(toastTimer.current); setToast(msg); toastTimer.current = setTimeout(() => setToast(''), 4500); }, []);
+  /* Curtain wipe: the view swaps while the panels cover the screen, then
+     they sweep away. Instant when motion is off or reduced motion is set. */
+  useEffect(() => { const t = curtainTimers.current; return () => t.forEach(clearTimeout); }, []);
+  const withCurtain = useCallback((fn) => {
+    if (!motion || matchMedia('(prefers-reduced-motion: reduce)').matches || curtain !== 'idle') { fn(); return; }
+    setCurtain('closing');
+    curtainTimers.current.push(setTimeout(() => { fn(); setCurtain('opening'); }, 430));
+    curtainTimers.current.push(setTimeout(() => setCurtain('idle'), 1000));
+  }, [motion, curtain]);
+  const fireDrop = useCallback((x, y, label) => {
+    const id = ++burstId.current;
+    setBursts((b) => [...b.slice(-2), { id, x, y, label }]);
+  }, []);
   sessionRef.current = token;
   currentProjectRef.current = activeId;
   const activeProject = projects.find((p) => p._id === activeId) || null;
@@ -125,11 +147,13 @@ export default function App() {
   }
 
   async function selectProject(id) {
-    if (id !== activeId) { setTasks([]); setAnalytics(null); setActivity([]); }
-    currentProjectRef.current = id; setActiveId(id); setSidebarOpen(false); setShowNewTask(false); resetView();
-    setSelected(null);
-    setRadial(null);
-    try { await loadBoard(id, token); } catch (err) { showToast(err.message); }
+    withCurtain(() => {
+      if (id !== activeId) { setTasks([]); setAnalytics(null); setActivity([]); }
+      currentProjectRef.current = id; setActiveId(id); setSidebarOpen(false); setShowNewTask(false); resetView();
+      setSelected(null);
+      setRadial(null);
+      loadBoard(id, token).catch((err) => showToast(err.message));
+    });
   }
 
   async function createProject(e) {
@@ -158,14 +182,22 @@ export default function App() {
     } catch (err) { showToast(err.message); }
   }
 
-  async function moveTask(id, status) {
+  async function moveTask(id, status, coords) {
     try {
       await api(`/api/tasks/${id}/move`, token, { method: 'PATCH', body: JSON.stringify({ status }) });
       await loadBoard(activeId, token);
+      let at = coords;
+      if (!at) {
+        const col = document.querySelector(`.column-${status}`);
+        if (col) { const r = col.getBoundingClientRect(); at = { x: r.left + r.width / 2, y: r.top + Math.min(140, r.height / 3) }; }
+      }
+      if (at && motion) fireDrop(at.x, at.y, `Moved to ${COLUMNS.find((c) => c.key === status)?.label || status}`);
+      return true;
     } catch (err) {
       setShakeCol(status);
       setTimeout(() => setShakeCol(null), 600);
       showToast(err.message);
+      return false;
     }
   }
 
@@ -240,10 +272,13 @@ export default function App() {
   if (!token || !user) {
     return (
       <div className="auth-shell page-enter">
+        <Cursor motion={motion} />
+        <Curtain phase={curtain} />
         <Assembly motion={motion} scene="auth" />
         <header className="auth-nav"><div className="brand"><span className="logo-mark" aria-hidden="true">↗</span> flowboard<span className="brand-period">.</span></div><span className="eyebrow auth-edition">The workspace / 001</span><MotionToggle motion={motion} setMotion={setMotion} /></header>
         <div className="auth-grid">
           <section className="auth-intro">
+            <Parallax motion={motion} />
             <KineticField motion={motion} hero />
             <div className="auth-intro-content">
               <p className="eyebrow"><span className="live-dot"/> BUILT FOR WORK IN MOTION</p>
@@ -282,13 +317,16 @@ export default function App() {
 
   return (
     <div className="app page-enter">
+      <Cursor motion={motion} />
+      <Curtain phase={curtain} />
+      <DropBurst bursts={bursts} onDone={(id) => setBursts((b) => b.filter((x) => x.id !== id))} />
       <Assembly motion={motion} scene={`${activeId || 'empty'}:${view}:${canvasMode}`} drawer={selected?._id} />
       <div className="mobile-top"><div className="brand">flowboard<span className="brand-period">.</span></div><button type="button" aria-expanded={sidebarOpen} onClick={() => setSidebarOpen(!sidebarOpen)}>{sidebarOpen ? 'Close' : 'Menu'} ☰</button></div>
       {sidebarOpen && <button type="button" aria-label="Close navigation" className="sidebar-overlay" onClick={() => setSidebarOpen(false)}/>}
       <aside className={`sidebar ${sidebarOpen ? 'sidebar-open' : ''}`}>
         <div className="brand"><span className="logo-mark small" aria-hidden="true">↗</span> flowboard<span className="brand-period">.</span></div>
         <p className="sidebar-label">Workspace / 01</p>
-        <nav className="view-nav" aria-label="Workspace views"><button className={view === 'board' ? 'active' : ''} onClick={() => {setView('board');setSidebarOpen(false);}}><span>▦</span> Board <small>01</small></button><button className={view === 'insights' ? 'active' : ''} onClick={() => {setView('insights');setSidebarOpen(false);}}><span>◔</span> Insights <small>02</small></button></nav>
+        <nav className="view-nav" aria-label="Workspace views"><button className={view === 'board' ? 'active' : ''} onClick={() => {withCurtain(() => setView('board'));setSidebarOpen(false);}}><span>▦</span> Board <small>01</small></button><button className={view === 'insights' ? 'active' : ''} onClick={() => {withCurtain(() => setView('insights'));setSidebarOpen(false);}}><span>◔</span> Insights <small>02</small></button></nav>
         <p className="sidebar-label">Projects</p>
         <div className="project-list">
           {projects.map((p) => (
@@ -389,7 +427,7 @@ export default function App() {
                       e.preventDefault();
                       setDropCol(null);
                       const id = dragId || e.dataTransfer.getData('text/plain');
-                      if (tasks.some(t => t._id === id)) moveTask(id, col.key);
+                      if (tasks.some(t => t._id === id)) moveTask(id, col.key, { x: e.clientX, y: e.clientY });
                     }}
                   >
                     <div className="column-head">
@@ -408,7 +446,7 @@ export default function App() {
                         return (
                           <article
                             key={t._id}
-                            className="card"
+                            className="card spot-card"
                             style={{ animationDelay: `${Math.min(i * 45, 225)}ms` }}
                             draggable
                             tabIndex={0}
@@ -479,7 +517,7 @@ export default function App() {
         <div className="section-heading insight-heading"><div><span className="eyebrow">02 / INSIGHTS</span><h2>Health & activity</h2></div><button className="refresh-button" disabled={boardBusy || !activeId} onClick={()=>loadBoard(activeId,token)}>↻ Refresh</button></div>
 
         <div className="bottom-panels">
-          <section className="panel analytics-panel" aria-label="Board health">
+          <section className="panel spot-card analytics-panel" aria-label="Board health">
             <h2>Board health <span>↗</span></h2>
             {analytics ? (
               <div className="analytics-grid">
@@ -510,7 +548,7 @@ export default function App() {
               </div>
             ) : <p className="muted">{boardBusy ? 'Loading analytics…' : activeProject ? 'Analytics unavailable.' : 'Create a project to see analytics.'}</p>}
           </section>
-          <section className="panel activity-panel" aria-label="Activity">
+          <section className="panel spot-card activity-panel" aria-label="Activity">
             <h2>Activity <span>↗</span></h2>
             <ul className="activity">
               {activity.map((a) => (

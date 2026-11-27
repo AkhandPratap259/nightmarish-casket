@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 
 const EMPTY_TASKS = [];
-const COLORS = { todo:'#81796e', 'in-progress':'#e67b43', review:'#b79c72', done:'#74977d' };
+const COLORS = { todo:'#5b4bc4', 'in-progress':'#c40e6e', review:'#b8860b', done:'#0e7c74' };
 const STATES = Object.keys(COLORS);
 const TAU = Math.PI*2;
 const blend = (a,b,t) => a+(b-a)*t;
@@ -21,9 +21,9 @@ export default function KineticField({ tasks = EMPTY_TASKS, motion, hero = false
     const enabled=()=>motion&&!preference.matches;
     const dots=new Map();
     const sync=()=>{
-      const current=hero?Array.from({length:84},(_,i)=>({id:`hero-${i}`,color:i%4===0?'#e67b43':'#c0b5a2',status:STATES[i%4]})):data.current.slice(0,100).map((task,i)=>({id:task._id||`task-${i}`,color:COLORS[task.status]||COLORS.todo,status:task.status}));
+      const current=hero?Array.from({length:84},(_,i)=>({id:`hero-${i}`,color:i%4===0?'#ff5ea8':i%4===1?'#2fd4c4':i%4===2?'#5b4bc4':'#ffd166',status:STATES[i%4]})):data.current.slice(0,100).map((task,i)=>({id:task._id||`task-${i}`,color:COLORS[task.status]||COLORS.todo,status:task.status}));
       // Decorative anchors remain even when a board has no tasks; real task dots retain status colours.
-      if(!hero)for(let i=0;i<48;i++)current.push({id:`anchor-${i}`,color:i%4===0?'#e67b43':'#b7ab99',status:STATES[i%4],anchor:true});
+      if(!hero)for(let i=0;i<48;i++)current.push({id:`anchor-${i}`,color:i%4===0?'#ff5ea8':i%4===1?'#2fd4c4':i%4===2?'#5b4bc4':'#ffd166',status:STATES[i%4],anchor:true});
       const keys=new Set(current.map(d=>d.id));
       for(const key of dots.keys())if(!keys.has(key))dots.delete(key);
       current.forEach((d,i)=>{
@@ -55,7 +55,7 @@ export default function KineticField({ tasks = EMPTY_TASKS, motion, hero = false
       sync();ctx.clearRect(0,0,w,h);
       const period=4800,phase=enabled()?clock/period:0,shape=Math.floor(phase)%3,next=(shape+1)%3;
       const morph=smooth(Math.max(0,Math.min(1,(phase%1-.48)/.52)));
-      if(hero){ctx.save();ctx.translate(w*.77,h*.38);ctx.strokeStyle='rgba(235,130,77,.19)';ctx.lineWidth=1;for(let i=0;i<6;i++){ctx.beginPath();ctx.ellipse(0,0,Math.min(w,h)*(.09+i*.036),Math.min(w,h)*(.07+i*.029),-.45+Math.sin(clock*.00025)*.15,0,TAU);ctx.stroke();}ctx.restore();}
+      if(hero){ctx.save();ctx.translate(w*.77,h*.38);ctx.strokeStyle='rgba(196,14,110,.19)';ctx.lineWidth=1;for(let i=0;i<6;i++){ctx.beginPath();ctx.ellipse(0,0,Math.min(w,h)*(.09+i*.036),Math.min(w,h)*(.07+i*.029),-.45+Math.sin(clock*.00025)*.15,0,TAU);ctx.stroke();}ctx.restore();}
       const follow=enabled()?1-Math.exp(-Math.max(1,dt)/115):1;
       for(const d of dots.values()){
         const a=target(d,shape),b=target(d,next);
