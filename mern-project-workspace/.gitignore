@@ -5,3 +5,7 @@ dist/
 # real Atlas URI, password or API key to it. Any other .env file is ignored:
 .env.local
 .env.production
+
+# Persistent local MongoDB data (never commit user files or chat history).
+server/.mongo-data/
+.chat-test-state.json

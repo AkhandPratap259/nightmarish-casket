@@ -6,12 +6,18 @@ const Activity = require('../models/Activity');
 const { requireAuth } = require('../middleware/auth');
 
 const router = express.Router();
+// Express 4 does not catch rejected promises from async route handlers.
+const safe = fn => (req,res,next) => Promise.resolve().then(()=>fn(req,res,next)).catch(next);
+for (const method of ['get','post','patch','delete']) {
+  const original = router[method].bind(router);
+  router[method] = (path, ...handlers) => original(path, ...handlers.map(safe));
+}
 router.use(requireAuth);
 
 function isMember(project, userId) {
   return (
     String(project.owner) === String(userId) ||
-    project.members.some((m) => String(m) === String(userId))
+    project.members.some((m) => String(m._id || m) === String(userId))
   );
 }
 
@@ -43,7 +49,7 @@ router.post('/', async (req, res) => {
     members: [req.user._id],
   });
   await Activity.create({ project: project._id, actor: req.user._id, action: 'created project', taskTitle: project.name });
-  res.status(201).json({ project });
+  res.status(201).json({ project: await Project.findById(project._id).populate('members', 'name email') });
 });
 
 router.get('/:id', loadProject, (req, res) => res.json({ project: req.project }));

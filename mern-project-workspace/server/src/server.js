@@ -1,4 +1,5 @@
 const path = require('path');
+const fs = require('fs');
 const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
@@ -13,14 +14,27 @@ const seedTasks = require('./seed/tasks');
 const authRoutes = require('./routes/auth');
 const projectRoutes = require('./routes/projects');
 const taskRoutes = require('./routes/tasks');
+const cardChatRoutes = require('./routes/cardChat');
 
 const app = express();
 app.use(cors({ origin: process.env.CLIENT_URL || 'http://localhost:5173' }));
+// Chat has its own authenticated, size-limited JSON parser for attachment bytes.
+app.use('/api/tasks/:id/chat', cardChatRoutes);
 app.use(express.json());
 app.get('/api/health', (req, res) => res.json({ ok: true, service: 'mern-project-workspace' }));
 app.use('/api/auth', authRoutes);
 app.use('/api/projects', projectRoutes);
 app.use('/api/tasks', taskRoutes);
+app.use('/api', (req,res) => res.status(404).json({error:'API endpoint not found'}));
+const clientDist = path.join(__dirname,'..','..','client','dist');
+app.use(express.static(clientDist));
+app.get('*', (req,res,next) => res.sendFile(path.join(clientDist,'index.html'),err=>{if(err)next();}));
+app.use((err,req,res,next)=>{
+  if (res.headersSent) return next(err);
+  if (err.name === 'ValidationError' || err.name === 'CastError') return res.status(400).json({error:'Invalid request data'});
+  console.error(err);
+  res.status(500).json({error:'Unexpected server error'});
+});
 
 async function connectDb() {
   if (process.env.MONGO_URI) {
@@ -28,26 +42,30 @@ async function connectDb() {
     console.log('Connected to MongoDB (MONGO_URI)');
     return;
   }
-  // Local development fallback: an in-memory MongoDB, so the app runs with
-  // zero setup. On Windows on ARM, MongoDB does not publish a Windows-ARM
-  // binary for 7.0.24, so the Intel (x64) binary must be used via emulation.
-  // This is forced here in code — not only via server/.env — because a
-  // missing, misnamed (.env.txt) or unloaded .env file must not be able to
-  // silently fall back to the broken aarch64 download. Set MONGO_URI to a
-  // free Atlas M0 cluster to skip the download entirely.
+  // Local MongoDB uses a stable, disk-backed WiredTiger directory.
+  // Never silently fall back to ephemeral storage: a failed startup must be visible.
   const { MongoMemoryServer } = require('mongodb-memory-server');
   const isWindowsArm = process.platform === 'win32' && process.arch === 'arm64';
-  // launchTimeout: the default is only 10 seconds, and an x64 mongod running
-  // under Windows-ARM emulation (plus first-run extraction / Defender scan)
-  // routinely takes longer than that to become ready, producing
-  // "Instance failed to start within 10000ms" even though the binary itself
-  // is fine. 60 seconds gives it room without changing anything else.
+  const dbPath = path.resolve(__dirname, '..', process.env.MONGO_DATA_DIR || '.mongo-data');
+  fs.mkdirSync(dbPath, { recursive: true });
   const mongod = await MongoMemoryServer.create({
     binary: isWindowsArm ? { arch: 'x64' } : {},
-    instance: { launchTimeout: 60000 },
+    instance: { dbPath, dbName: 'flowboard', storageEngine: 'wiredTiger', launchTimeout: 60000 },
   });
-  await mongoose.connect(mongod.getUri());
-  console.log('Connected to in-memory MongoDB (local dev only — set MONGO_URI for persistent data)');
+  await mongoose.connect(mongod.getUri('flowboard'));
+  let stopping = false;
+  async function shutdown() {
+    if (stopping) return;
+    stopping = true;
+    try {
+      await mongoose.disconnect();
+      await mongod.stop({ doCleanup: false, force: false });
+      process.exit(0);
+    } catch (err) { console.error(err); process.exit(1); }
+  }
+  process.once('SIGINT', shutdown);
+  process.once('SIGTERM', shutdown);
+  console.log('Connected to persistent local MongoDB:', dbPath);
 }
 
 async function seed() {
@@ -100,8 +118,9 @@ async function seed() {
 }
 
 async function start() {
+  if (process.env.NODE_ENV === 'production' && (!process.env.MONGO_URI || !process.env.JWT_SECRET || process.env.JWT_SECRET.includes('dev-only'))) throw new Error('Production requires MONGO_URI and a private JWT_SECRET');
   await connectDb();
-  await seed();
+  if (process.env.NODE_ENV !== 'production' && process.env.SEED_DEMO !== 'false') await seed();
   const port = process.env.PORT || 5000;
   app.listen(port, () => console.log(`API running on http://localhost:${port}`));
 }

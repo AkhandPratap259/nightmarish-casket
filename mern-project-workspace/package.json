@@ -1,0 +1,17 @@
+{
+  "name": "flowboard-editorial-kinetic",
+  "private": true,
+  "version": "2.0.0",
+  "scripts": {
+    "setup": "npm ci --prefix server && npm ci --prefix client",
+    "build": "npm run build --prefix client",
+    "start": "npm start --prefix server",
+    "dev:server": "npm run dev --prefix server",
+    "dev:client": "npm run dev --prefix client",
+    "test:api": "node scripts/smoke-test.mjs",
+    "test:chat": "node scripts/chat-test.mjs"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

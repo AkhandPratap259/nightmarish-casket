@@ -1,10 +1,16 @@
 const express = require('express');
 const Project = require('../models/Project');
-const { Task, WIP_LIMITS } = require('../models/Task');
+const { Task, WIP_LIMITS, STATUSES } = require('../models/Task');
 const Activity = require('../models/Activity');
 const { requireAuth } = require('../middleware/auth');
 
 const router = express.Router();
+// Express 4 does not catch rejected promises from async route handlers.
+const safe = fn => (req,res,next) => Promise.resolve().then(()=>fn(req,res,next)).catch(next);
+for (const method of ['get','post','patch','delete']) {
+  const original = router[method].bind(router);
+  router[method] = (path, ...handlers) => original(path, ...handlers.map(safe));
+}
 router.use(requireAuth);
 
 async function memberOf(projectId, userId) {
@@ -31,7 +37,7 @@ router.get('/project/:projectId', async (req, res) => {
   const query = { project: project._id };
   if (req.query.status) query.status = req.query.status;
   if (req.query.priority) query.priority = req.query.priority;
-  if (req.query.search) query.title = { $regex: req.query.search, $options: 'i' };
+  if (req.query.search) query.title = { $regex: String(req.query.search).replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), $options: 'i' };
   if (req.query.mine === 'true') query.assignee = req.user._id;
   if (req.query.assignee) query.assignee = req.query.assignee;
   const tasks = await Task.find(query)
@@ -45,8 +51,10 @@ router.post('/project/:projectId', async (req, res) => {
   const project = await memberOf(req.params.projectId, req.user._id);
   if (!project) return res.status(403).json({ error: 'Not a member of this project' });
   const { title, description, status, priority, labels, dueDate, assignee } = req.body || {};
-  if (!title) return res.status(400).json({ error: 'Task title is required' });
+  if (!String(title || '').trim()) return res.status(400).json({ error: 'Task title is required' });
   const targetStatus = status || 'todo';
+  if (!STATUSES.includes(targetStatus)) return res.status(400).json({error:'Invalid task status'});
+  if (assignee && !project.members.some(m => String(m) === String(assignee)) && String(project.owner) !== String(assignee)) return res.status(400).json({error:'Assignee must be a project member'});
   const limit = await checkWip(project._id, targetStatus, null);
   if (limit) return res.status(400).json({ error: `WIP limit reached: ${targetStatus} already holds ${limit} cards` });
   const max = await Task.findOne({ project: project._id, status: targetStatus }).sort({ position: -1 });
@@ -72,13 +80,14 @@ async function loadTask(req, res, next) {
   const project = await memberOf(task.project, req.user._id);
   if (!project) return res.status(403).json({ error: 'Not a member of this project' });
   req.task = task;
+  req.project = project;
   return next();
 }
 
 // Move a card (drag-and-drop target). WIP limits are enforced here.
 router.patch('/:id/move', loadTask, async (req, res) => {
   const { status, position } = req.body || {};
-  if (!status) return res.status(400).json({ error: 'Status is required' });
+  if (!STATUSES.includes(status)) return res.status(400).json({ error: 'Invalid task status' });
   if (status !== req.task.status) {
     const limit = await checkWip(req.task.project, status, req.task._id);
     if (limit) {
@@ -96,6 +105,7 @@ router.patch('/:id/move', loadTask, async (req, res) => {
 });
 
 router.patch('/:id', loadTask, async (req, res) => {
+  if (req.body.assignee && !req.project.members.some(m => String(m) === String(req.body.assignee)) && String(req.project.owner) !== String(req.body.assignee)) return res.status(400).json({error:'Assignee must be a project member'});
   const fields = ['title', 'description', 'priority', 'dueDate', 'assignee'];
   fields.forEach((f) => {
     if (req.body[f] !== undefined) req.task[f] = req.body[f];
@@ -104,7 +114,8 @@ router.patch('/:id', loadTask, async (req, res) => {
     req.task.labels = Array.isArray(req.body.labels) ? req.body.labels : String(req.body.labels).split(',').map((s) => s.trim()).filter(Boolean);
   }
   await req.task.save();
-  res.json({ task: req.task });
+  await Activity.create({project:req.task.project,actor:req.user._id,action:'updated task',taskTitle:req.task.title});
+  res.json({ task: await Task.findById(req.task._id).populate('assignee','name email').populate('comments.author','name') });
 });
 
 router.post('/:id/checklist', loadTask, async (req, res) => {
